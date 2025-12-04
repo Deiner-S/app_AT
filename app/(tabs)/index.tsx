@@ -1,48 +1,36 @@
+import Form from "@/models/Form";
+import SqliteFormDAO from "@/services/SqliteFormDAO";
 import { useEffect, useState } from "react";
-import { Text, TextInput, View, Button, FlatList } from "react-native";
-import * as SQLite from "expo-sqlite";
+import { Button, FlatList, Text, TextInput, View } from "react-native";
 
-// abre (ou cria) o banco local
-const db = SQLite.openDatabaseSync("localdb.db");
 
 export default function Index() {
-  const [name, setName] = useState("");
+  const [name, setName] = useState(""); //tipo um GET
   const [age, setAge] = useState("");
   const [items, setItems] = useState([]);
 
-  // cria tabela uma vez
+  const formDAO = new SqliteFormDAO();
+
+  const newForm: Form = {
+    nome: name,
+    idade: Number(age),
+    ativo: true
+  };
+
+
   useEffect(() => {
-    db.execSync(`
-      CREATE TABLE IF NOT EXISTS people (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        age INTEGER
-      );
-    `);
-    loadData();
+    const carregarDados = async () => {
+      const dados = await formDAO.readAll(); // supondo que você crie um método readAll no DAO
+      setItems(dados); // setForms é useState para lista de forms
+  };
+
+    carregarDados();
   }, []);
 
-  // carrega dados
-  const loadData = () => {
-    const result = db.getAllSync(`SELECT * FROM people`);
-    setItems(result);
-  };
-
-  // insere dados
   const saveData = () => {
-    if (!name || !age) return;
+    formDAO.create(newForm)    
+  }
 
-    db.runSync(
-      `INSERT INTO people (name, age) VALUES (?, ?)`,
-      [name, Number(age)]
-    );
-
-    setName("");
-    setAge("");
-    loadData();
-  };
-
-  // (Futuro) Sincronizar com API
   const syncData = () => {
     // aqui você vai bater no backend Django
     // pegar os itens "pendentes" do SQLite
