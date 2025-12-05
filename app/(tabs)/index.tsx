@@ -32,6 +32,17 @@ export default function Index() {
     setItems(rows);
   };
 
+  const updateData = async () => {
+    if (!formDAO || !selectedId) return;
+    await formDAO.update(
+      selectedId,{
+      nome: name,
+      idade: Number(age),
+    })
+    const rows = await formDAO.readAll();
+    setItems(rows);
+  }
+  
   const deleteData = async () => {
     if (!formDAO || !selectedId) return;
 
@@ -63,6 +74,7 @@ export default function Index() {
       />
 
       <Button title="Salvar" onPress={saveData} />
+      <Button title="Atualizar" onPress={updateData} />
       <Button title="Deletar" onPress={deleteData} />
 
       <Text style={{ marginTop: 20, fontSize: 18 }}>
