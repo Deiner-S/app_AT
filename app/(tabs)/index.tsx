@@ -24,8 +24,8 @@ export default function Index() {
   const saveData = async () => {
     if (!formDAO) return;
     await formDAO.create({
-      nome: name,
-      idade: Number(age),
+      name: name,
+      age: Number(age),
     });
 
     const rows = await formDAO.readAll();
@@ -36,8 +36,8 @@ export default function Index() {
     if (!formDAO || !selectedId) return;
     await formDAO.update(
       selectedId,{
-      nome: name,
-      idade: Number(age),
+      name: name,
+      age: Number(age),
     })
     const rows = await formDAO.readAll();
     setItems(rows);

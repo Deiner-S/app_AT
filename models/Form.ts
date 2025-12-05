@@ -1,5 +1,5 @@
 export default interface Form {
   id?: number;   
-  nome: string;
-  idade: number;
+  name: string;
+  age: number;
 }
