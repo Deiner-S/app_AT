@@ -3,7 +3,9 @@ import SqliteFormDAO from "@/services/SQLiteFormDAO";
 import { useEffect, useState } from "react";
 import { Button, FlatList, Pressable, Text, TextInput, View } from "react-native";
 
+
 export default function Index() {
+
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [items, setItems] = useState<Form[]>([]);
@@ -26,6 +28,7 @@ export default function Index() {
     await formDAO.create({
       name: name,
       age: Number(age),
+      sinc: 0
     });
 
     const rows = await formDAO.readAll();
@@ -38,6 +41,7 @@ export default function Index() {
       selectedId,{
       name: name,
       age: Number(age),
+      sinc: 0
     })
     const rows = await formDAO.readAll();
     setItems(rows);
@@ -101,7 +105,7 @@ export default function Index() {
                   fontWeight: isSelected ? "bold" : "normal",
                   color: isSelected ? "#0056b3" : "#333",
                 }}>
-                  {item.name} — {item.age} anos
+                  {item.name} — {item.age} anos - {item.sinc}
                 </Text>
               </View>
             </Pressable>
