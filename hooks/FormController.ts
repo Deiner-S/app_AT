@@ -22,6 +22,7 @@ export default function formController() {
   }, []);
 
   const saveData = async () => {
+    console.log("save")
       if (!dao) return;
       await dao.create({
         name: name,
@@ -35,6 +36,7 @@ export default function formController() {
     };
 
     const updateData = async () => {
+      console.log("update")
       if (!dao || !selectedId) return;
       await dao.update(
         selectedId,{
@@ -48,6 +50,7 @@ export default function formController() {
     }
     
     const deleteData = async () => {
+      console.log("delete")
       if (!dao || !selectedId) return;
 
       await dao.delete(selectedId);
@@ -58,6 +61,7 @@ export default function formController() {
     };
 
     /*function reset() {
+      console.log("reset")
       setName("");
       setAge("");
       setItems([]);

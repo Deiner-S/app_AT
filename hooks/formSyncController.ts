@@ -3,7 +3,8 @@ import SqliteFormDAO from "@/services/SQLiteFormDAO";
 
 export default function formSyncController(formDAO:SqliteFormDAO | null){
 
-    const sincData = async () => {    
+    const sincData = async () => {  
+        console.log("sincData")  
         if (!formDAO) return;
         const rows = await formDAO.readAll();
         for (const row of rows) {

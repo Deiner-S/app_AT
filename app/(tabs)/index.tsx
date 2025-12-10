@@ -1,14 +1,14 @@
-import formController from "@/hooks/FormController";
-import formSyncController from "@/hooks/formSyncController";
+import useFormController from "@/hooks/FormController";
+import useFormSyncController from "@/hooks/formSyncController";
 import { Button, FlatList, Pressable, Text, TextInput, View } from "react-native";
-
+;
 
 
 
 export default function Index() {
 
-  const form = formController()
-  const sync = formSyncController(form.dao)
+  const form = useFormController()
+  const sync = useFormSyncController(form.dao)
   
 
   return (
