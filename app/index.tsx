@@ -1,31 +1,39 @@
-import { Link } from "expo-router";
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React from 'react';
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+// Tipagem das rotas do Stack
+type StackParamList = {
+  Home: undefined;
+  Details: { id: number }; // se quiser passar parâmetros
+};
+
+type HomeScreenNavigationProp = NativeStackNavigationProp<StackParamList, 'Home'>;
+
 export default function Index() {
-  // variável temporária só para teste
+  const navigation = useNavigation<HomeScreenNavigationProp>();
   const status = "Pendente";
 
   return (
-    <View style={styles.container}>
-        <Text>Texto</Text>
-        <Link href={"/proxima"}>teste</Link>
-        <Pressable
-        onPress={() => console.log("Card clicado!")}
-        style={({ pressed }) => [           // 🔹 style agora é uma função que recebe o estado "pressed"
-          styles.Pressable,
-          pressed && styles.PressablePressed, // 🔹 aplica estilo enquanto o card está pressionado
-          pressed && { transform: [{ scale: 0.97 }] }, // 🔹 efeito de “afundar” levemente ao clicar
-        ]}
-      >
-        <View style={styles.row}>
-          <Text style={styles.text}>OS: 72356</Text>
-          <Text style={[styles.text, { color: status === "Pendente" ? "red" : "green" }]}>
-            Status: {status}
-          </Text>
-        </View>
-      </Pressable>
-    </View>
-    
+      <View style={styles.container}>
+          <Text>Texto</Text>
+          <Pressable
+          onPress={() => navigation.navigate('Details', { id: 42 })}
+          style={({ pressed }) => [           // 🔹 style agora é uma função que recebe o estado "pressed"
+            styles.Pressable,
+            pressed && styles.PressablePressed, // 🔹 aplica estilo enquanto o card está pressionado
+            pressed && { transform: [{ scale: 0.97 }] }, // 🔹 efeito de “afundar” levemente ao clicar
+          ]}
+        >
+          <View style={styles.row}>
+            <Text style={styles.text}>OS: 72356</Text>
+            <Text style={[styles.text, { color: status === "Pendente" ? "red" : "green" }]}>
+              Status: {status}
+            </Text>
+          </View>
+        </Pressable>
+      </View>
   );
 }
 const styles = StyleSheet.create({
