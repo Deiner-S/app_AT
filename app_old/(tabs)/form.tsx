@@ -5,7 +5,7 @@ import { Button, FlatList, Pressable, Text, TextInput, View } from "react-native
 
 
 
-export default function Index() {
+export default function Form() {
 
   const form = useFormController()
   const sync = useFormSyncController(form.dao)
