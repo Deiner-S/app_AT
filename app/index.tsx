@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Tipagem das rotas do Stack
 type StackParamList = {
@@ -16,6 +17,7 @@ export default function Index() {
   const status = "Pendente";
 
   return (
+    <SafeAreaView style={{ flex: 1 }}edges={['left', 'right', 'bottom']}>
       <View style={styles.container}>
           <Text>Texto</Text>
           <Pressable
@@ -34,6 +36,7 @@ export default function Index() {
           </View>
         </Pressable>
       </View>
+    </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({
