@@ -1,4 +1,4 @@
-import ChecklistItem from '@/components/checkList';
+import ChecklistItem from '@/components/checkListBox';
 import HeaderOS from '@/components/headerOS';
 import useCheckListController from '@/hooks/checkListController';
 import React from "react";

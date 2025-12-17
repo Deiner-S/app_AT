@@ -18,9 +18,8 @@ export default function Index() {
 
   return (
     
-    <SafeAreaView style={{ flex: 1 }}edges={['left', 'right', 'bottom']}>
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-          <View>              
+    <SafeAreaView style={{ flex: 1 }}edges={['left', 'right', 'bottom']}>      
+          <View style={styles.container}>              
               <Pressable
                 onPress={() => navigation.navigate('Details', { id: 42 })}
                 style={({ pressed }) => [           // 🔹 style agora é uma função que recebe o estado "pressed"
@@ -36,8 +35,7 @@ export default function Index() {
                   </Text>
                 </View>
             </Pressable>            
-          </View>
-      </ScrollView>
+          </View>      
     </SafeAreaView>
   );
 }

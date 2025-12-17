@@ -1,5 +1,5 @@
-import Check from '@/models/Check';
-import CheckReposytory from '@/repository/CheckRepository';
+import CheckListItem from '@/models/CheckListItem';
+import CheckReposytory from '@/repository/CheckListItemRepository';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from "react";
 interface ChecklistStateItem {
@@ -19,14 +19,14 @@ export default function useCheckListController(){
     const [symptoms,setSymptoms] = useState("");
     const [client,setClient] = useState("");
     
-    const [checklistItems, setChecklistItems] = useState<Check[]>([]);
+    const [checklistItems, setChecklistItems] = useState<CheckListItem[]>([]);
     const [checklistState, setChecklistState] = useState<ChecklistStateItem[]>([]);
     
     useEffect(() => {
       
       async function loadChecklist() {
         const checkReposytory = await CheckReposytory.build()
-        const data: Check[] = await checkReposytory.getAll();
+        const data: CheckListItem[] = await checkReposytory.getAll();
         setChecklistItems(data);
       }
 
