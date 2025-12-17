@@ -4,14 +4,14 @@ import Repository from "./repository";
 import tableInit from "./tableInit";
 
 
-export default class CheckService implements Repository<Check,number> {
+export default class CheckReposytory implements Repository<Check,number> {
 
   db!: SQLite.SQLiteDatabase;
 
   constructor() {}
   
   static async build() {
-      const instance = new CheckService();
+      const instance = new CheckReposytory();
       instance.db = await SQLite.openDatabaseAsync("app.db");
       await tableInit(instance.db);
       return instance;
