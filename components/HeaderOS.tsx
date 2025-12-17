@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import React from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 interface CabecalhoOSProps {
   client: string;
@@ -18,20 +18,10 @@ interface CabecalhoOSProps {
   onChange: (_event: any, selectedDate?: Date) => void;
 }
 
-export default function CabecalhoOS({
-  client,
-  operation_code,
-  symptoms,
-  chassi,
-  setChassi,
-  orimento,
-  setOrimento,
-  modelo,
-  setModelo,
-  date,
-  open,
-  setOpen,
-  onChange,
+export default function HeaderOS({
+  client,  operation_code,  symptoms,  chassi,
+  setChassi,  orimento,  setOrimento,  modelo,  setModelo,
+  date,  open,  setOpen,  onChange,
 }: CabecalhoOSProps) {
   return (
     <View style={{ flex: 1 }}>

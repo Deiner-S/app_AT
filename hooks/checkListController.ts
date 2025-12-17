@@ -15,6 +15,9 @@ export default function useCheckListController(){
     const [chassi, setChassi] = useState("");
     const [orimento, setOrimento] = useState("");
     const [modelo, setModelo] = useState("");
+    const [operation_code, setOperation_code] = useState("");
+    const [symptoms,setSymptoms] = useState("");
+    const [client,setClient] = useState("");
     
     const [checklistItems, setChecklistItems] = useState<Check[]>([]);
     const [checklistState, setChecklistState] = useState<ChecklistStateItem[]>([]);
@@ -60,9 +63,6 @@ export default function useCheckListController(){
     }
 
 
-    const operation_code = "OS-45872";
-    const symptoms = "Equipamento não liga ao pressionar o botão.";
-    const client = "Empresa Atlas Tecnologia – Unidade SP";
     const saveData = () => {
       console.log('Salvo')
     }

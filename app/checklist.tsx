@@ -1,10 +1,9 @@
-import CabecalhoOS from '@/components/cabecalhoOS';
 import ChecklistItem from '@/components/checkList';
+import HeaderOS from '@/components/headerOS';
 import useCheckListController from '@/hooks/checkListController';
 import React from "react";
 import { Button, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 
 export default function Proxima() {
     
@@ -13,7 +12,7 @@ export default function Proxima() {
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['left', 'right', 'bottom']}>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-        <CabecalhoOS
+        <HeaderOS
             client={checkList.client}
             operation_code={checkList.operation_code}
             symptoms={checkList.symptoms}
@@ -28,6 +27,7 @@ export default function Proxima() {
             setOpen={checkList.setOpen}
             onChange={checkList.onChange}
           />
+
           <View style={styles.divider} />
           
           {checkList.checklistItems.map(item => (
