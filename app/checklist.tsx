@@ -22,8 +22,8 @@ export default function CheckList() {
             setOrimento={checkList.setOrimento}
             modelo={checkList.modelo}
             setModelo={checkList.setModelo}
-            date={checkList.date}
-            open={checkList.open}
+            dateFilled={checkList.date}
+            openCalendar={checkList.open}
             setOpen={checkList.setOpen}
             onChange={checkList.onChange}
           />

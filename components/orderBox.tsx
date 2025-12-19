@@ -11,7 +11,7 @@ export default function OsCard({ item }: OsCardProps) {
   const navigation = useNavigation<any>();
   return (
       <Pressable    
-        onPress={() => navigation.navigate('Details', { workOrder: item})}
+        onPress={() => navigation.navigate('Check list', { workOrder: item})}
         style={({ pressed }) => [
           styles.pressable,
           pressed && styles.pressablePressed,

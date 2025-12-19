@@ -1,6 +1,8 @@
 import CheckListItem from '@/models/CheckListItem';
 import WorkOrder from '@/models/WorkOrder';
-import CheckReposytory from '@/repository/CheckListItemRepository';
+import CheckListItemReposytory from '@/repository/CheckListItemRepository';
+import CheckListRepository from '@/repository/CheckListRepository';
+import WorkOrderRepository from '@/repository/WorkOrderRepository';
 import { useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from "react";
@@ -13,26 +15,50 @@ interface ChecklistStateItem {
 
 export default function useCheckListController(){
 
-    const [date, setDate] = useState(new Date());
-    const [open, setOpen] = useState(false);
+    const [dateFilled, setDateFilled] = useState(new Date());
+    const [openCalendar, setOpenCalendar] = useState(false);
     const [chassi, setChassi] = useState("");
     const [orimento, setOrimento] = useState("");
     const [modelo, setModelo] = useState("");
+
     const route = useRoute();
     const { workOrder } = route.params as { workOrder: WorkOrder };
     
     const [checklistItems, setChecklistItems] = useState<CheckListItem[]>([]);
     const [checklistState, setChecklistState] = useState<ChecklistStateItem[]>([]);
-    
+    const [checkListRepositor, setCheckListRepository] = useState<CheckListRepository>()
+    const [workOrderRepository, setWorkOrderRepository] = useState<WorkOrderRepository>()
+    useEffect(()=>{
+
+        
+
+    })
+
     useEffect(() => {
-      
-      async function loadChecklist() {
-        const checkReposytory = await CheckReposytory.build()
-        const data: CheckListItem[] = await checkReposytory.getAll();
-        setChecklistItems(data);
+      let isMounted = true;
+
+      async function init() {
+        const workOrderRepository = await WorkOrderRepository.build();
+        const checkListRepository = await CheckListRepository.build();
+        const checkListItemRepository = await CheckListItemReposytory.build();
+
+        if (!isMounted) return;
+
+        setWorkOrderRepository(workOrderRepository);
+        setCheckListRepository(checkListRepository);
+
+        const data = await checkListItemRepository.getAll();
+        const filteredData = data.filter(item => item.status !== 0);
+
+        if (!isMounted) return;
+        setChecklistItems(filteredData);
       }
 
-      loadChecklist();
+      init();
+
+      return () => {
+        isMounted = false;
+      };
     }, []);
 
 
@@ -66,13 +92,28 @@ export default function useCheckListController(){
 
 
     const saveData = () => {
+
+      workOrderRepository?.update({
+          operation_code:workOrder.operation_code,
+          client:workOrder.client,
+          symptoms:workOrder.symptoms,
+          chassi:,
+          orimento:,
+          model:,
+          date_in:,
+          date_out:,
+          status:"Andamento",
+          service:,
+          insert_date:,
+
+      })
       console.log('Salvo')
     }
 
 
   function onChange(_event: any, selectedDate?: Date) {
-    setOpen(false);
-    if (selectedDate) setDate(selectedDate);
+    setOpenCalendar(false);
+    if (selectedDate) setDateFilled(selectedDate);
   }
 
   const takePhoto = async (itemID:number) => {
@@ -88,7 +129,7 @@ export default function useCheckListController(){
   
 
   return{
-    date, setDate,open, setOpen,
+    dateFilled, setDate: setDateFilled,openCalendar, setOpen: setOpenCalendar,
     chassi, setChassi,orimento, setOrimento,
     modelo, setModelo, checklistState, setChecklistState,
     setItemSelected, setItemPhotoUri, workOrder,

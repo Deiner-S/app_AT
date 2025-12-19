@@ -12,8 +12,8 @@ interface CabecalhoOSProps {
   setOrimento: (value: string) => void;
   modelo: string;
   setModelo: (value: string) => void;
-  date: Date;
-  open: boolean;
+  dateFilled: Date;
+  openCalendar: boolean;
   setOpen: (value: boolean) => void;
   onChange: (_event: any, selectedDate?: Date) => void;
 }
@@ -21,7 +21,7 @@ interface CabecalhoOSProps {
 export default function HeaderOS({
   client,  operation_code,  symptoms,  chassi,
   setChassi,  orimento,  setOrimento,  modelo,  setModelo,
-  date,  open,  setOpen,  onChange,
+  dateFilled, openCalendar,  setOpen,  onChange,
 }: CabecalhoOSProps) {
   return (
     <View style={{ flex: 1 }}>
@@ -64,13 +64,13 @@ export default function HeaderOS({
           style={styles.dateButton}
         >
           <Text style={{ color: "#fff" }}>
-            {date.toLocaleDateString("pt-BR")}
+            {dateFilled.toLocaleDateString("pt-BR")}
           </Text>
         </Pressable>
 
-        {open && (
+        {openCalendar && (
           <DateTimePicker
-            value={date}
+            value={dateFilled}
             mode="date"
             display="default"
             onChange={onChange}
