@@ -91,11 +91,21 @@ export default function useCheckListController(){
     }
 
     async function readImageAsUint8Array(uri: string): Promise<Uint8Array> {
-      const response = await fetch(uri)
-      const blob = await response.blob()
-      const buffer = await blob.arrayBuffer()
-      return new Uint8Array(buffer)
-    }
+          const response = await fetch(uri);
+          const blob = await response.blob();
+
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+              const buffer = reader.result as ArrayBuffer;
+              resolve(new Uint8Array(buffer));
+            };
+
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(blob);
+          });
+        }
 
     const saveData = async () => {
 
@@ -112,7 +122,6 @@ export default function useCheckListController(){
           service: undefined,
 
       })
-
       for (const checkList of checklistState){
         if(checkList.selected && checkList.photoUri){
           checkListRepositor?.save({
@@ -123,7 +132,10 @@ export default function useCheckListController(){
           })
         }
       }
-      console.log('Salvo')
+      
+      const data = await workOrderRepository?.getAll();
+      console.log(data)
+      console.log("Salvo")
     }
 
 

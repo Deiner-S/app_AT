@@ -11,7 +11,7 @@ interface ChecklistItemProps {
   photoUri?: string | null;
 }
 
-export default function ChecklistItem({
+export default function ChecklistBox({
   checkList,
   selected,
   setSelected,

@@ -1,5 +1,5 @@
-import ChecklistItem from '@/components/checkListBox';
-import HeaderOS from '@/components/headerOS';
+import ChecklistBox from '@/components/checkListBox';
+import HeaderOS from '@/components/HeaderOS';
 import useCheckListController from '@/hooks/checkListController';
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -31,7 +31,7 @@ export default function CheckList() {
           <View style={styles.divider} />
           
           {checkList.checklistItems.map(item => (
-            <ChecklistItem
+            <ChecklistBox
               key={item.id}
               checkList={item.name}
               selected={checkList.checklistState.find(i => i.id === item.id)?.selected ?? null}
