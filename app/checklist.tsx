@@ -1,5 +1,5 @@
-import ChecklistBox from '@/components/checkListBox';
-import HeaderOS from '@/components/HeaderOS';
+import ChecklistBox from '@/components/checklistComponents/checkListBox';
+import HeaderOS from '@/components/checklistComponents/HeaderOS';
 import useCheckListController from '@/hooks/checkListController';
 import { useNavigation } from 'expo-router';
 import React from "react";

@@ -1,4 +1,4 @@
-import OsCard from '@/components/orderBox';
+import OsCard from '@/components/indexComponents/orderBox';
 import useOrderController from '@/hooks/orderController';
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
