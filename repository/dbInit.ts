@@ -41,7 +41,7 @@ async function tableInit(db: any.SQLiteDatabase){
             date_out TEXT,
             status TEXT NOT NULL,
             service TEXT,
-            insert_date TEXT DEFAULT CURRENT_TIMESTAMP
+            insert_date TEXT
         );
 
         
