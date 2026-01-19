@@ -4,7 +4,7 @@ import WorkOrder from "@/models/WorkOrder";
 import CheckListItemRepository from "@/repository/CheckListItemRepository";
 import CheckListRepository from '@/repository/CheckListRepository';
 import WorkOrderRepository from "@/repository/WorkOrderRepository";
-import NetInfo from '@react-native-community/netinfo';
+import { hasWebAccess, httpRequest } from "@/services/networkService";
 
 
 // tasks
@@ -12,17 +12,35 @@ import NetInfo from '@react-native-community/netinfo';
 // - evaluate dividing the file into more specialized files
 // - Add a retry system to requests.
 
+export default class Synchronizer{
+    private baseUrl = "https://ringless-equivalently-alijah.ngrok-free.dev/gerenciador"
 
-export async function receivePendingOrders() {
-    if(await hasWebAccess()){
+    
+    private constructor() {}
+    static async build(): Promise<Synchronizer> {
+        const instance = new Synchronizer();
+        return instance;
+    }
+    public async run(): Promise<void>{
+        if(await hasWebAccess()){
+            await this.receivePendingOrders("/send_work_orders_api")
+            await this.receiveCheckListItems("/send_checklist_items_api")
+            //await this.sendWorkOrders("/receive_work_orders_api")
+            //await this.sendCheckListsFilleds("/receive_checklist_api")
+        }else{
+            console.log("throw Error no network")
+        }
+    }
+
+    private async receivePendingOrders(endPoint:string): Promise<void> {        
         const workOrders = await httpRequest<WorkOrder[]>({
             method: 'GET',
-            endpoint: "/send_work_orders_api",
-            BASE_URL: "https://ringless-equivalently-alijah.ngrok-free.dev/gerenciador"
+            endpoint: endPoint,
+            BASE_URL: this.baseUrl
             })
         console.log("dados coletados api")
         if(!workOrders){
-            console.log("throw Error")
+            console.log(`throw Error: Failed to connect to endpoint:${endPoint}`)
         }
         console.log("inicializando obj do banco")
         const workOrderRepository = await WorkOrderRepository.build()
@@ -35,18 +53,17 @@ export async function receivePendingOrders() {
             }
             console.log("operação realizada")        
         }
+        
     }
-}
 
-export async function receiveCheckListItems(){
-    if(await hasWebAccess()){
+    private async receiveCheckListItems(endPoint:string): Promise<void>{        
         const checklistItemList = await httpRequest<CheckListItem[]>({
             method: 'GET',
-            endpoint: "/send_checklist_items_api",
-            BASE_URL: "https://ringless-equivalently-alijah.ngrok-free.dev/gerenciador"
+            endpoint: endPoint,
+            BASE_URL: this.baseUrl
             })
         if(!checklistItemList){
-            console.log("throw Error")
+            console.log(`throw Error: Failed to connect to endpoint:${endPoint}`)
         }
         
         const checkListItemRepository = await CheckListItemRepository.build();
@@ -57,21 +74,19 @@ export async function receiveCheckListItems(){
             await checkListItemRepository.save(item)        
         }
         
-        console.log("Conteúdo:", checklistItemList)
+        console.log("Conteúdo:", checklistItemList)        
+        
     }
-    
-}
 
-export async function sendWorkOrders() {
-    if(await hasWebAccess()){    
+    private async sendWorkOrders(endPoint:string): Promise<void>{   
         const workOrderRepository = await WorkOrderRepository.build()
         const workOrders = await workOrderRepository.getAll()
         const workOrdersFiltered = workOrders.filter(item => item.statusSync !== 1)
 
         const response = await httpRequest<WorkOrder[]>({
             method: 'POST',
-            endpoint: "/receive_work_orders_api",
-            BASE_URL: "https://ringless-equivalently-alijah.ngrok-free.dev/gerenciador",
+            endpoint: endPoint,
+            BASE_URL: this.baseUrl,
             body: workOrdersFiltered
         })
 
@@ -81,15 +96,12 @@ export async function sendWorkOrders() {
                 workOrderRepository.update(workOrder)
             }
         }else{
-            console.log("throw Error")
+            console.log(`throw Error: Failed to connect to endpoint:${endPoint}`)
         }
 
-        
     }
-}
 
-export async function sendCheckListsFilleds(){
-    if(await hasWebAccess()){ 
+    private async sendCheckListsFilleds(endPoint:string){
         const checkListRepository = await CheckListRepository.build()
         const checkLists = await checkListRepository.getAll()
         const checkListsFiltered = checkLists.filter(item => item.statusSync !== 1)
@@ -97,8 +109,8 @@ export async function sendCheckListsFilleds(){
 
         const response = await httpRequest<CheckList[]>({
             method: 'POST',
-            endpoint: "/receive_checklist_api",
-            BASE_URL: "https://ringless-equivalently-alijah.ngrok-free.dev/gerenciador",
+            endpoint: endPoint,
+            BASE_URL: this.baseUrl,
             body: checkListsFiltered
         })
 
@@ -108,49 +120,17 @@ export async function sendCheckListsFilleds(){
                 checkListRepository.update(checkList)
             }
         }else{
-            console.log("throw Error")
+            console.log(`throw Error: Failed to connect to endpoint:${endPoint}`)
         }
 
     }
 }
 
-async function hasWebAccess(): Promise<boolean> {
-  const state = await NetInfo.fetch();
-
-  return Boolean(
-    state.isConnected && state.isInternetReachable
-  );
-}
 
 
+ 
 
-// definindo valores possíveis para 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH';
 
-//Empacotador da requisição
-interface RequestOptions {
-  method: HttpMethod;
-  endpoint: string;
-  body?: unknown;
-  headers?: Record<string, string>;
-  BASE_URL: String
-}
-
-async function httpRequest<T>({method,endpoint,body,headers = {},BASE_URL}: RequestOptions): Promise <T>{
-
-    const response = await fetch(`${BASE_URL}${endpoint}`, {      
-        method,
-        headers: {'Content-Type': 'application/json',...headers},
-        body: body ? JSON.stringify(body) : undefined,
-    });
-
-    if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(`HTTP ${response.status} - ${errorBody || response.statusText}`);
-    }
-
-    return response.json() as Promise<T>;
-}
 
     
 
