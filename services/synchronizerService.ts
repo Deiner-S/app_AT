@@ -1,9 +1,10 @@
-import NetInfo from '@react-native-community/netinfo';
+import CheckList from '@/models/CheckList';
 import CheckListItem from "@/models/CheckListItem";
 import WorkOrder from "@/models/WorkOrder";
 import CheckListItemRepository from "@/repository/CheckListItemRepository";
-import WorkOrderRepository from "@/repository/WorkOrderRepository";
 import CheckListRepository from '@/repository/CheckListRepository';
+import WorkOrderRepository from "@/repository/WorkOrderRepository";
+import NetInfo from '@react-native-community/netinfo';
 
 
 // tasks
@@ -19,16 +20,20 @@ export async function receivePendingOrders() {
             endpoint: "/send_work_orders_api",
             BASE_URL: "https://ringless-equivalently-alijah.ngrok-free.dev/gerenciador"
             })
+        console.log("dados coletados api")
         if(!workOrders){
             console.log("throw Error")
         }
+        console.log("inicializando obj do banco")
         const workOrderRepository = await WorkOrderRepository.build()
         for(const workOrder of workOrders){
+            console.log("efetuando operação")
             const response = await workOrderRepository.getById(workOrder.operation_code)
             if(!response){
                 workOrderRepository.save(workOrder)
                 console.log(workOrder)
-            }        
+            }
+            console.log("operação realizada")        
         }
     }
 }
@@ -57,7 +62,7 @@ export async function receiveCheckListItems(){
     
 }
 
-export async function sendOrdersChanges() {
+export async function sendWorkOrders() {
     if(await hasWebAccess()){    
         const workOrderRepository = await WorkOrderRepository.build()
         const workOrders = await workOrderRepository.getAll()
@@ -90,6 +95,21 @@ export async function sendCheckListsFilleds(){
         const checkListsFiltered = checkLists.filter(item => item.statusSync !== 1)
 
 
+        const response = await httpRequest<CheckList[]>({
+            method: 'POST',
+            endpoint: "/receive_checklist_api",
+            BASE_URL: "https://ringless-equivalently-alijah.ngrok-free.dev/gerenciador",
+            body: checkListsFiltered
+        })
+
+        if(response){
+            for(const checkList of checkListsFiltered){
+                checkList.statusSync = 1
+                checkListRepository.update(checkList)
+            }
+        }else{
+            console.log("throw Error")
+        }
 
     }
 }

@@ -11,7 +11,9 @@ export default class Database {
       const db = await any.openDatabaseAsync("app.db");
       await tableInit(db);
       Database.instance = db;
+      console.log("Nova instancia")
     }
+    console.log("instancia criada")
     return Database.instance;
   }
 }
@@ -26,7 +28,7 @@ async function tableInit(db: any.SQLiteDatabase){
         CREATE TABLE IF NOT EXISTS checklist_item (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            status INTEGER NOT NULL,            
+            status INTEGER NOT NULL            
         );
 
         
@@ -40,7 +42,7 @@ async function tableInit(db: any.SQLiteDatabase){
             date_in TEXT,
             date_out TEXT,
             status TEXT NOT NULL,
-            status_sync INTEGER NOT NULL DEFAULT 1,
+            status_sync INTEGER DEFAULT 1,
             service TEXT,
             img BLOB,
             insert_date TEXT
@@ -52,65 +54,12 @@ async function tableInit(db: any.SQLiteDatabase){
             checklist_item_fk INTEGER NOT NULL,
             work_order_fk TEXT NOT NULL,
             status TEXT NOT NULL,
-            status_sync INTEGER NOT NULL DEFAULT 0
+            status_sync INTEGER NOT NULL DEFAULT 0,
             img BLOB,
             
             FOREIGN KEY (work_order_fk) REFERENCES work_order(operation_code), 
             FOREIGN KEY (checklist_item_fk) REFERENCES checklist_item(id)
         );
-
-        /*
-        INSERT INTO work_order (operation_code, client, symptoms, status) VALUES
-        ('1001', 'João da Silva', 'Motor não liga', '1'),
-        ('1002', 'Maria Oliveira', 'Barulho estranho ao frear', '1'),
-        ('1003', 'Carlos Santos', 'Luz de injeção acesa', '1'),
-        ('1004', 'Ana Pereira', 'Vibração excessiva em marcha lenta', '1'),
-        ('1005', 'Pedro Almeida', 'Veículo perde força em subidas', '1');
-
-        
-        INSERT INTO checklist_item (id, name, status) VALUES 
-        (1, 'LIMPEZA', 1),
-        (2, 'PNEU F/D', 0),
-        (3, 'PNEU F/E', 0),
-        (4, 'PNEU T/D', 0),
-        (5, 'PNEU T/E', 0),
-        (6, 'CABINE', 0),
-        (7, 'PARALAMA T/D', 0),
-        (8, 'PARALAMA T/E', 0),
-        (9, 'PARALAMA D/D', 0),
-        (10, 'PARALAMA D/E', 0),
-        (11, 'CAPÔ L/D', 0),
-        (12, 'CAPÔ L/F', 0),
-        (13, 'CAPÔ CIMA', 0),
-        (14, 'VAZAMENTO MOTOR', 0),
-        (15, 'VAZAMENTO TRANSMISÃO', 0),
-        (16, 'FAROL DIANTEIRO CAPÔ', 0),
-        (17, 'FAROL LATERAL D/CAPÔ', 0),
-        (18, 'FAROL LATERAL E/CAPÔ', 0),
-        (19, 'CONTRA PESO DIANTEIRO', 0),
-        (20, 'CONTRA PESO TRASEIRO L/D', 0),
-        (21, 'CONTRA PESO TRASEIRO L/E', 0),
-        (22, 'PINO LEVANTE HIDRAULICO L/D', 0),
-        (23, 'PINO LEVANTE HIDRAULICO L/E', 0),
-        (24, 'PINO BARRA DE TRAÇÃO', 0),
-        (25, 'PINO BARRA DE TRAÇÃO L/D', 0),
-        (26, 'PINO BARRA DE TRAÇÃO L/E', 0),
-        (27, 'TECLAS CABINE', 0),
-        (28, 'PORTA L/D', 0),
-        (29, 'PORTA L/E', 0),
-        (30, 'PORTA LATERAL L/D', 0),
-        (31, 'PORTA LATERAL L/E', 0),
-        (32, 'PORTA TRASEIRA', 0),
-        (33, 'PAINEL', 0),
-        (34, 'BOZINA', 0),
-        (35, 'LUZ ALTA', 0),
-        (36, 'LUZ BAIXA', 0),
-        (37, 'SETA F/D', 0),
-        (38, 'SETA F/E', 0),
-        (39, 'SETA T/D', 0),
-        (40, 'SETA T/E', 0),
-        (41, 'PISCA ALERTA', 0);
-        */
             `
         );
 }
