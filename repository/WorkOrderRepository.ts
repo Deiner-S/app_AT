@@ -44,7 +44,7 @@ export default class WorkOrderRepository implements Repository<WorkOrder, number
           entity.date_in ?? null,
           entity.date_out ?? null,
           entity.status ?? null,
-          entity.statusSync ?? null,
+          entity.status_sync ?? null,
           entity.img ?? null,
           entity.service ?? null
         ]
@@ -96,7 +96,7 @@ export default class WorkOrderRepository implements Repository<WorkOrder, number
           entity.date_in ?? null,
           entity.date_out ?? null,
           entity.status ?? null,
-          entity.statusSync,
+          entity.status_sync,
           entity.img ?? null,
           entity.service ?? null,
           entity.operation_code
@@ -125,7 +125,7 @@ export default class WorkOrderRepository implements Repository<WorkOrder, number
   async getAll(): Promise<WorkOrder[]> {
     try {
       const result = await this.db.getAllAsync<WorkOrder>(
-        `SELECT * FROM work_order ORDER BY insert_date DESC`
+        `SELECT * FROM work_order ORDER BY insertDate DESC`
       );
       return result;
     } catch (error) {

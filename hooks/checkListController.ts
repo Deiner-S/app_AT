@@ -124,7 +124,7 @@ export default function useCheckListController(){
           date_in:dateFilled.toISOString(),
           date_out: undefined,
           status:"2",
-          statusSync: 0,
+          status_sync: 0,
           service: undefined,
 
       })
@@ -133,6 +133,7 @@ export default function useCheckListController(){
           checkListRepositor?.save({
             checklist_fk:checkList.id,
             serviceOrder_fk: workOrder.operation_code,
+            status_sync: 0,
             status: checkList.selected,
             img: await readImageAsUint8Array(checkList.photoUri),            
           })

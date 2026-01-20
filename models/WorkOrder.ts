@@ -8,8 +8,8 @@ export default interface WorkOrder {
   date_in?: string;
   date_out?: string;
   status: string;
-  statusSync : number;
+  status_sync : number;
   service?: string;
   img?:string
-  insert_date?: string;
+  insertDate?: string;
 }

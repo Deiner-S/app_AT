@@ -3,7 +3,7 @@ export default interface CheckList{
     checklist_fk:number
     serviceOrder_fk:number
     status:string
-    statusSync?: number
+    status_sync?: number
     img?: Uint8Array | null
 
 }

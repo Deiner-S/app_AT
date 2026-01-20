@@ -16,7 +16,7 @@ export default function useOrderController(){
           await synchronizer.run()
           const workOrderRepository = await WorkOrderRepository.build();
           const data: WorkOrder[] = await workOrderRepository.getAll();
-          const filteredData = data.filter(item => item.status === "1");
+          const filteredData = await data.filter(item => item.status === "1");
           setWorkOrders(filteredData);
         }
         loadWorkOrders();

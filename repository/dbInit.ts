@@ -10,10 +10,8 @@ export default class Database {
     if (!Database.instance) {
       const db = await any.openDatabaseAsync("app.db");
       await tableInit(db);
-      Database.instance = db;
-      console.log("Nova instancia")
-    }
-    console.log("instancia criada")
+      Database.instance = db;      
+    }    
     return Database.instance;
   }
 }
@@ -45,7 +43,7 @@ async function tableInit(db: any.SQLiteDatabase){
             status_sync INTEGER DEFAULT 1,
             service TEXT,
             img BLOB,
-            insert_date TEXT
+            insertDate TEXT
         );
 
         

@@ -1,7 +1,7 @@
 import CheckList from "@/models/CheckList";
 import * as SQLite from "expo-sqlite";
-import Repository from "./repository";
 import Database from "./dbInit";
+import Repository from "./repository";
 
 export default class CheckListRepository implements Repository<CheckList, number> {
 
@@ -17,8 +17,13 @@ export default class CheckListRepository implements Repository<CheckList, number
     try {
       const query = `
         INSERT INTO checklist 
-        (checklist_item_fk, work_order_fk, status, img)
-        VALUES (?, ?, ?, ?)
+        (checklist_item_fk, 
+        work_order_fk, 
+        status, 
+        status_sync, 
+        img)
+
+        VALUES (?, ?, ?, ?, ?)
       `;
 
       await this.db.runAsync(query, [
@@ -57,7 +62,8 @@ export default class CheckListRepository implements Repository<CheckList, number
         UPDATE checklist
         SET checklist_item_fk = ?, 
             work_order_fk = ?, 
-            status = ?, 
+            status = ?,
+            status_sync =?
             img = ?
         WHERE id = ?
       `;
@@ -66,6 +72,7 @@ export default class CheckListRepository implements Repository<CheckList, number
         entity.checklist_fk,
         entity.serviceOrder_fk,
         entity.status,
+        entity.status_sync ?? null,
         entity.img ?? null,
         entity.id
       ]);
