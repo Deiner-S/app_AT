@@ -9,20 +9,23 @@ import { useEffect, useState } from "react";
 export default function useOrderController(){
     const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
     
-      useEffect(() => {
-       
-        async function loadWorkOrders() {
-          const synchronizer = await Synchronizer.build()
-          await synchronizer.run()
+    const loadWorkOrders = async () => {
           const workOrderRepository = await WorkOrderRepository.build();
           const data: WorkOrder[] = await workOrderRepository.getAll();
           const filteredData = await data.filter(item => item.status === "1");
           setWorkOrders(filteredData);
         }
-        loadWorkOrders();
-      }, []);
+
+    useEffect(() => {
+      async function init(){
+        const synchronizer = await Synchronizer.build()
+        await synchronizer.run()
+        loadWorkOrders()
+      }
+      init()       
+    },[]);
     
     return {
-        workOrders
+        workOrders,reload: loadWorkOrders
     }
 }

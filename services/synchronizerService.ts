@@ -16,6 +16,7 @@ export default class Synchronizer{
 
     
     private constructor() {}
+
     static async build(): Promise<Synchronizer> {
         const instance = new Synchronizer();
         return instance;
@@ -41,16 +42,17 @@ export default class Synchronizer{
             endpoint: endPoint,
             BASE_URL: this.baseUrl
         })
-        
+        console.log(workOrders)
         if(!workOrders){
             console.log(`throw Error: Failed to connect to endpoint:${endPoint}`)
         }
         
         const workOrderRepository = await WorkOrderRepository.build()
         for(const workOrder of workOrders){            
-            const response = await workOrderRepository.getById(workOrder.operation_code)
-            if(!response){
+            const order_exists = await workOrderRepository.getById(workOrder.operation_code)
+            if(!order_exists){
                 console.log(workOrder.status_sync)
+                console.log(`Work order: ${workOrder}`)
                 workOrder.status_sync = 1
                 await workOrderRepository.save(workOrder)
                 console.log(workOrder)
