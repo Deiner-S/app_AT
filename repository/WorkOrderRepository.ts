@@ -30,7 +30,7 @@ export default class WorkOrderRepository implements Repository<WorkOrder, number
           date_out,
           status,
           status_sync,
-          img,
+          signature,
           service
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
@@ -45,7 +45,7 @@ export default class WorkOrderRepository implements Repository<WorkOrder, number
           entity.date_out ?? null,
           entity.status ?? null,
           entity.status_sync ?? null,
-          entity.img ?? null,
+          entity.signature ?? null,
           entity.service ?? null
         ]
       );
@@ -83,7 +83,7 @@ export default class WorkOrderRepository implements Repository<WorkOrder, number
           date_out = ?,
           status = ?,
           status_sync = ?,
-          img = ?,
+          signature = ?,
           service = ?
         WHERE operation_code = ?
         `,
@@ -97,7 +97,7 @@ export default class WorkOrderRepository implements Repository<WorkOrder, number
           entity.date_out ?? null,
           entity.status ?? null,
           entity.status_sync,
-          entity.img ?? null,
+          entity.signature ?? null,
           entity.service ?? null,
           entity.operation_code
         ]

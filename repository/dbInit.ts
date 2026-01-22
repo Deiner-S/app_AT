@@ -42,7 +42,7 @@ async function tableInit(db: any.SQLiteDatabase){
             status TEXT NOT NULL,
             status_sync INTEGER DEFAULT 1,
             service TEXT,
-            img BLOB,
+            signature BLOB,
             insertDate TEXT
         );
 

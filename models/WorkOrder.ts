@@ -10,6 +10,6 @@ export default interface WorkOrder {
   status: string;
   status_sync : number;
   service?: string;
-  img?:string
+  signature?:string
   insertDate?: string;
 }
