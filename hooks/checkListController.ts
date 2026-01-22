@@ -128,8 +128,8 @@ export default function useCheckListController(){
       for (const checkList of checklistState){
         if(checkList.selected && checkList.photoUri){
           checkListRepositor?.save({
-            checklist_fk:checkList.id,
-            serviceOrder_fk: workOrder.operation_code,
+            checklist_item_fk:checkList.id,
+            work_order_fk: workOrder.operation_code,
             status_sync: 0,
             status: checkList.selected,
             img: await readImageAsUint8Array(checkList.photoUri),            

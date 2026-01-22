@@ -27,9 +27,10 @@ export default class CheckListRepository implements Repository<CheckList, number
       `;
 
       await this.db.runAsync(query, [
-        entity.checklist_fk,
-        entity.serviceOrder_fk,
+        entity.checklist_item_fk,
+        entity.work_order_fk,
         entity.status,
+        entity.status_sync ?? null,
         entity.img ?? null
       ]);
 
@@ -63,14 +64,14 @@ export default class CheckListRepository implements Repository<CheckList, number
         SET checklist_item_fk = ?, 
             work_order_fk = ?, 
             status = ?,
-            status_sync =?
+            status_sync =?,
             img = ?
         WHERE id = ?
       `;
 
       await this.db.runAsync(query, [
-        entity.checklist_fk,
-        entity.serviceOrder_fk,
+        entity.checklist_item_fk,
+        entity.work_order_fk,
         entity.status,
         entity.status_sync ?? null,
         entity.img ?? null,

@@ -50,12 +50,9 @@ export default class Synchronizer{
         const workOrderRepository = await WorkOrderRepository.build()
         for(const workOrder of workOrders){            
             const order_exists = await workOrderRepository.getById(workOrder.operation_code)
-            if(!order_exists){
-                console.log(workOrder.status_sync)
-                console.log(`Work order: ${workOrder}`)
+            if(!order_exists){                
                 workOrder.status_sync = 1
-                await workOrderRepository.save(workOrder)
-                console.log(workOrder)
+                await workOrderRepository.save(workOrder)                
             }
                     
         }
@@ -113,7 +110,6 @@ export default class Synchronizer{
         const checkListRepository = await CheckListRepository.build()
         const checkLists = await checkListRepository.getAll()
         const checkListsFiltered = checkLists.filter(item => item.status_sync !== 1)
-
         if (checkListsFiltered.length === 0){
             console.log(`throw Error: empyt list:${endPoint}`)
         }else{       
