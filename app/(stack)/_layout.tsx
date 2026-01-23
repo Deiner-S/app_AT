@@ -1,35 +1,40 @@
-import { useSync } from '@/contexts/syncContext';
-import { MaterialIcons } from '@expo/vector-icons';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import React from 'react';
-import { TouchableOpacity } from 'react-native';
-import CheckList from './checklist';
-import Index from './index';
+import { useAuth } from '@/contexts/authContext'
+import { useSync } from '@/contexts/syncContext'
+import { MaterialIcons } from '@expo/vector-icons'
+import { Redirect, Stack } from 'expo-router'
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
 
+export default function StackLayout() {
+  console.log('StackLayout Renderizou')
 
-const Stack = createNativeStackNavigator();
-export default function StackNavigator() {
+  const { token, loading } = useAuth()
+  const { runSync } = useSync()
 
-  const { runSync } = useSync();
-  
-  return (    
-    <Stack.Navigator>
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator />
+      </View>
+    )
+  }
+
+  if (!token) {
+    return <Redirect href="/login" />
+  }
+
+  return (
+    <Stack>
       <Stack.Screen
-        name="Home"
-        component={Index}
+        name="HomeScreen"
         options={{
           headerRight: () => (
             <TouchableOpacity onPress={runSync}>
-              <MaterialIcons
-                name="sync"
-                size={24}
-                color="#000"
-                />
+              <MaterialIcons name="sync" size={24} color="#000" />
             </TouchableOpacity>
           ),
         }}
       />
-      <Stack.Screen name="Check list" component={CheckList} />
-    </Stack.Navigator>    
-  );
+      <Stack.Screen name="Checklist" />
+    </Stack>
+  )
 }

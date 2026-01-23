@@ -1,10 +1,14 @@
-import { SyncProvider } from '@/contexts/syncContext';
-import { Stack } from 'expo-router';
+
+import { AuthProvider } from '@/contexts/authProvider'
+import { SyncProvider } from '@/contexts/syncContext'
+import { Slot } from 'expo-router'
 
 export default function RootLayout() {
   return (
-    <SyncProvider>
-      <Stack screenOptions={{ headerShown: false }}/>
-    </SyncProvider>
-  );
+    <AuthProvider>
+      <SyncProvider>
+        <Slot/>
+      </SyncProvider>
+    </AuthProvider>
+  )
 }
