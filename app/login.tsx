@@ -1,17 +1,67 @@
 import { useAuth } from '@/contexts/authContext'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { MaterialIcons } from '@expo/vector-icons'
+import { useState } from 'react'
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 
 export default function Login() {
   console.log('LOGIN RENDERIZOU')
+
+  const [user, setUser] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+
   const { login } = useAuth()
 
   async function handleLogin() {
-    console.log('Login Efetuado')
-    // await login('usuario', 'senha')
+    if(user !== "" && password !== ""){
+      console.log(`${user}, ${password}`)
+      login(user,password)
+    }else{
+      console.log("campos invalidos")
+    }
+    
   }
 
   return (
     <View style={styles.container}>
+      {/* USER */}
+      <TextInput
+        style={styles.input}
+        placeholder="User"
+        placeholderTextColor="#8e8e93"
+        value={user}
+        onChangeText={setUser}
+        autoCapitalize="none"
+      />
+
+      {/* PASSWORD */}
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          placeholder="Password"
+          placeholderTextColor="#8e8e93"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+          autoCapitalize="none"
+        />
+
+        <Pressable onPress={() => setShowPassword(p => !p)}>
+           <MaterialIcons
+              name={showPassword ? 'visibility-off' : 'visibility'}
+              size={22}
+              color="#6b7280"
+            />
+        </Pressable>
+      </View>
+
+      {/* BUTTON */}
       <Pressable
         onPress={handleLogin}
         style={({ pressed }) => [
@@ -28,20 +78,88 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#2e3238',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 16,
   },
+
+  input: {
+    borderWidth: 1,
+    borderColor: '#3a3f45',
+    width: '100%',
+    maxWidth: 320,
+    height: 52,
+    marginBottom: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    color: '#000',
+    fontSize: 16,
+
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 320,
+    height: 52,
+    marginBottom: 16,
+
+    borderWidth: 1,
+    borderColor: '#3a3f45',
+    borderRadius: 10,
+    backgroundColor: '#fff',
+
+    paddingHorizontal: 12,
+
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+
+  passwordInput: {
+    flex: 1,
+    color: '#000',
+    fontSize: 16,
+  },
+
+  eye: {
+    fontSize: 18,
+    paddingHorizontal: 6,
+  },
+
   button: {
-    backgroundColor: '#2563eb',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-    elevation: 3, // Android sombra
+    width: '100%',
+    maxWidth: 320,
+    height: 52,
+
+    backgroundColor: '#2563EB',
+    borderRadius: 12,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
+
   buttonPressed: {
     transform: [{ scale: 0.96 }],
     opacity: 0.85,
   },
+
   text: {
     color: '#fff',
     fontSize: 16,

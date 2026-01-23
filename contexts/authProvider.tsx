@@ -1,9 +1,15 @@
+import { httpRequest } from '@/services/networkService'
+import { clearToken, getToken, saveToken } from '@/storange/authStorange'
 import { useEffect, useState } from 'react'
 import { AuthContext } from './authContext'
-import { getToken, saveToken, clearToken } from '@/storange/authStorange'
 
 type Props = {
   children: React.ReactNode
+}
+
+type LoginResponse = {
+  access: string
+  refresh: string
 }
 
 export function AuthProvider({ children }: Props) {
@@ -21,19 +27,22 @@ export function AuthProvider({ children }: Props) {
   }, [])
 
   async function login(username: string, password: string) {
-    const response = await fetch('https://SEU_BACKEND/api/token/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+    console.log("Try request")
+    const response = await httpRequest<LoginResponse>({
+            method: 'POST',
+            endpoint: '/api/token/',
+            BASE_URL: "https://ringless-equivalently-alijah.ngrok-free.dev/gerenciador",
+            body: {username,password}
     })
-
-    if (!response.ok) {
-      throw new Error('Login inválido')
-    }
-
-    const data = await response.json()
-    await saveToken(data.access)
-    setToken(data.access)
+    
+    
+    if (response.access && response.refresh) {
+        console.log('Token de acesso:', response.access)
+        //await saveToken(response.access)
+        //setToken(response.access)
+    } else {
+      console.log('Login inválido')
+    }  
   }
 
   function logout() {
