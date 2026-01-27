@@ -1,5 +1,5 @@
 import { httpRequest } from '@/services/networkService'
-import { clearToken, getToken, saveToken } from '@/storange/authStorange'
+import { clearToken, saveToken as saveTokenStorange } from '@/storange/authStorange'
 import { useEffect, useState } from 'react'
 import { AuthContext } from './authContext'
 
@@ -12,21 +12,22 @@ type LoginResponse = {
   refresh: string
 }
 
+
+
+
 export function AuthProvider({ children }: Props) {
-  const [token, setToken] = useState<string | null>(null)
+  const [loged, setloged] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function bootstrap() {
-      const storedToken = await getToken()
-      setToken(storedToken)
       setLoading(false)
     }
 
     bootstrap()
   }, [])
 
-  async function login(username: string, password: string) {
+  async function login(username: string, password: string){
     console.log("Try request")
     const response = await httpRequest<LoginResponse>({
             method: 'POST',
@@ -37,21 +38,27 @@ export function AuthProvider({ children }: Props) {
     
     
     if (response.access && response.refresh) {
-        console.log('Token de acesso:', response.access)
-        //await saveToken(response.access)
-        //setToken(response.access)
+      console.log('Token de acesso:', response.access)
+      await saveTokenStorange({
+        access: response.access,
+        refresh: response.refresh
+      })
+      setloged(true)
+      return true
+      
     } else {
       console.log('Login inválido')
-    }  
+      return false
+    } 
   }
 
   function logout() {
     clearToken()
-    setToken(null)
+    return true
   }
 
   return (
-    <AuthContext.Provider value={{ token, loading, login, logout }}>
+    <AuthContext.Provider value={{ loged, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

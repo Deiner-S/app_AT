@@ -7,7 +7,7 @@ import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
 export default function StackLayout() {
   console.log('StackLayout Renderizou')
 
-  const { token, loading } = useAuth()
+  const { loged, loading } = useAuth()
   const { runSync } = useSync()
 
   if (loading) {
@@ -18,7 +18,7 @@ export default function StackLayout() {
     )
   }
 
-  if (!token) {
+  if (!loged) {
     return <Redirect href="/login" />
   }
 

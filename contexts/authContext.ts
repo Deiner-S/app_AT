@@ -1,10 +1,10 @@
 import { createContext, useContext } from 'react'
 
 export type AuthContextType = {
-  token: string | null
+  loged:boolean
   loading: boolean
-  login: (username: string, password: string) => Promise<void>
-  logout: () => void
+  login: (username: string, password: string) => Promise<boolean>
+  logout: () => boolean
 }
 
 export const AuthContext = createContext<AuthContextType>(

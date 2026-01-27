@@ -1,5 +1,6 @@
 import { useAuth } from '@/contexts/authContext'
 import { MaterialIcons } from '@expo/vector-icons'
+import { router } from 'expo-router'
 import { useState } from 'react'
 import {
   Pressable,
@@ -19,14 +20,20 @@ export default function Login() {
   const { login } = useAuth()
 
   async function handleLogin() {
-    if(user !== "" && password !== ""){
-      console.log(`${user}, ${password}`)
-      login(user,password)
-    }else{
-      console.log("campos invalidos")
+    if (!user || !password) {
+      console.log('campos invalidos')
+      return
     }
-    
+
+    const ok = await login(user, password)
+
+    if (ok) {
+      router.replace('/(stack)/homeScreen')
+    } else {
+      console.log('login inválido')
+    }
   }
+
 
   return (
     <View style={styles.container}>

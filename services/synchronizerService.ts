@@ -13,17 +13,20 @@ import { hasWebAccess, httpRequest } from "@/services/networkService";
 
 export default class Synchronizer{
     private baseUrl = "https://ringless-equivalently-alijah.ngrok-free.dev/gerenciador"
-
+    private authToken: string
     
-    private constructor() {}
+    private constructor(authToken:string) {
+        this.authToken = authToken
+    }
 
-    static async build(): Promise<Synchronizer> {
-        const instance = new Synchronizer();
+    static async build(authToken:string): Promise<Synchronizer> {
+        const instance = new Synchronizer(authToken);
         return instance;
     }
     public async run(): Promise<void>{
         if(await hasWebAccess()){
             console.log("sinc1")
+            console.log(this.authToken)
             await this.receivePendingOrders("/send_work_orders_api/")
             console.log("sinc2")
             await this.receiveCheckListItems("/send_checklist_items_api/")
@@ -40,7 +43,8 @@ export default class Synchronizer{
         const workOrders = await httpRequest<WorkOrder[]>({
             method: 'GET',
             endpoint: endPoint,
-            BASE_URL: this.baseUrl
+            BASE_URL: this.baseUrl,
+            headers: {Authorization: `Bearer ${this.authToken}`,}
         })
         console.log(workOrders)
         if(!workOrders){
@@ -63,7 +67,8 @@ export default class Synchronizer{
         const checklistItemList = await httpRequest<CheckListItem[]>({
             method: 'GET',
             endpoint: endPoint,
-            BASE_URL: this.baseUrl
+            BASE_URL: this.baseUrl,
+            headers: {Authorization: `Bearer ${this.authToken}`,}
         })
 
         if(!checklistItemList){
@@ -91,7 +96,8 @@ export default class Synchronizer{
                 method: 'POST',
                 endpoint: endPoint,
                 BASE_URL: this.baseUrl,
-                body: workOrdersFiltered
+                body: workOrdersFiltered,
+                headers: {Authorization: `Bearer ${this.authToken}`,}
             })
             
             if(response.ok){
@@ -117,7 +123,8 @@ export default class Synchronizer{
                     method: 'POST',
                     endpoint: endPoint,
                     BASE_URL: this.baseUrl,
-                    body: checkListsFiltered
+                    body: checkListsFiltered,
+                    headers: {Authorization: `Bearer ${this.authToken}`,}
             })
 
             if(response.ok){
