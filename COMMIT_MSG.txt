@@ -1,0 +1,8 @@
+feat(auth): fluxo de autenticação finalizado
+
+- AuthProvider delega responsabilidades para AuthService
+- SyncService passa a obter token via Storage
+- NetworkService faz refresh automático em 401
+- Rotas centralizadas em Routes.ts
+
+

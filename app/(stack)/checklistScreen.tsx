@@ -1,9 +1,10 @@
 import ChecklistBox from '@/components/checklistComponents/checkListBox';
 import HeaderOS from '@/components/checklistComponents/HeaderOS';
+import Signature from '@/components/checklistComponents/signature';
 import useCheckListHook from '@/hooks/checkListHook';
 import { useNavigation } from 'expo-router';
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Routes } from '../routes';
 
@@ -52,12 +53,28 @@ export default function CheckList() {
               photoUri={checkList.checklistState.find(i => i.id === item.id)?.photoUri ?? null}
             />
           ))}
+          <View style={styles.content}>
+            <Pressable style={({ pressed }) => [
+                    styles.signatureButton,
+                    pressed && styles.signatureButtonPressed
+                  ]} onPress={() => checkList.setOpenSignature(true)}>
+              <Text style={styles.buttonText}>Assinar</Text>
+            </Pressable>
+          </View>
+          <Modal visible={checkList.openSignature} animationType="slide">
+            <Signature
+              setSignature={checkList.setSignature}
+              onClose={() => checkList.setOpenSignature(false)}
+            />
+          </Modal>
+
+          <View style={styles.divider} />
 
           <View style={styles.content}>
               <Pressable
                 style={({ pressed }) => [
-                  styles.button,
-                  pressed && styles.buttonPressed
+                  styles.submitButton,
+                  pressed && styles.submitButtonPressed
                 ]}
                 onPress={handleSave}
               >
@@ -91,7 +108,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  button: {
+  signatureButton: {
+    width: "100%",
+    maxWidth: 320,
+    height: 52,
+
+    backgroundColor: "#144B2E", // azul elegante
+    borderRadius: 12,
+
+    alignItems: "center",
+    justifyContent: "center",
+
+    elevation: 3, // Android shadow
+    shadowColor: "#000", // iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+
+  signatureButtonPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
+  },
+
+  submitButton: {
     width: "100%",
     maxWidth: 320,
     height: 52,
@@ -109,7 +149,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
 
-  buttonPressed: {
+  submitButtonPressed: {
     opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },

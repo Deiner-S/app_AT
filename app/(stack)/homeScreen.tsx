@@ -1,4 +1,4 @@
-import OsCard from '@/components/indexComponents/orderBox';
+import OsCard from '@/components/homeComponents/orderBox';
 import { useSync } from '@/contexts/syncContext';
 import useHomeHook from '@/hooks/homeHook';
 import React, { useEffect } from 'react';

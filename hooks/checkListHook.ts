@@ -14,8 +14,9 @@ interface ChecklistStateItem {
 }
 
 export default function useCheckListHook(){
-    
+    const [openSignature, setOpenSignature] = useState(false);
 
+    const [signature, setSignature] = useState<string>("")
     const [dateFilled, setDateFilled] = useState(new Date());
     const [openCalendar, setOpenCalendar] = useState(false);
     const [chassi, setChassi] = useState("");
@@ -123,6 +124,7 @@ export default function useCheckListHook(){
           status:"2",
           status_sync: 0,
           service: undefined,
+          signature: await readImageAsUint8Array(signature)
 
       })
       for (const checkList of checklistState){
@@ -167,7 +169,7 @@ export default function useCheckListHook(){
     chassi, setChassi,orimento, setOrimento,
     modelo, setModelo, checklistState, setChecklistState,
     setItemSelected, setItemPhotoUri, workOrder,
-    saveData,onChange,takePhoto, checklistItems
+    saveData,onChange,takePhoto, checklistItems,setSignature,setOpenSignature,openSignature 
   }
 
 
