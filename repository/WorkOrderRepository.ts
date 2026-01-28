@@ -70,6 +70,7 @@ export default class WorkOrderRepository implements Repository<WorkOrder, number
   }
 
   async update(entity: WorkOrder): Promise<boolean> {
+    console.log("update")
     try {
       await this.db.runAsync(
         `

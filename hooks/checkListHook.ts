@@ -92,6 +92,19 @@ export default function useCheckListHook(){
         )
       );
     }
+    function base64ToUint8Array(base64: string): Uint8Array {
+      console.log("consegui ?")
+      const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, '');
+      const binary = atob(cleanBase64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+
+      return bytes;
+    }
 
     async function readImageAsUint8Array(uri: string): Promise<Uint8Array> {
           const response = await fetch(uri);
@@ -111,7 +124,7 @@ export default function useCheckListHook(){
         }
 
     const saveData = async () => {
-
+      console.log("saveData")
       workOrderRepository?.update({
           operation_code:workOrder.operation_code,
           client:workOrder.client,
@@ -124,7 +137,7 @@ export default function useCheckListHook(){
           status:"2",
           status_sync: 0,
           service: undefined,
-          signature: await readImageAsUint8Array(signature)
+          signature: await base64ToUint8Array(signature)
 
       })
       for (const checkList of checklistState){
