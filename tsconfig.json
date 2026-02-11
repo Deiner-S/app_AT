@@ -6,7 +6,10 @@
       "@/*": [
         "./*"
       ]
-    }
+
+    },
+    "target": "ES5",
+    "lib": ["ES2015", "DOM"]
   },
   "include": [
     "**/*.ts",
@@ -14,4 +17,6 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ]
+
+ 
 }
