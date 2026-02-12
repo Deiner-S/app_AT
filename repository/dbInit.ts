@@ -1,4 +1,15 @@
+import CheckList from "@/models/CheckList";
+import CheckListItem from "@/models/CheckListItem";
+import WorkOrder from "@/models/WorkOrder";
 import * as any from "expo-sqlite";
+
+const models = [
+  WorkOrder,
+  CheckList,
+  CheckListItem,
+
+]
+
 
 //Singleton: garante que só exista uma instância do banco de dados
 export default class Database {
@@ -9,57 +20,55 @@ export default class Database {
   static async getInstance(): Promise<any> {
     if (!Database.instance) {
       const db = await any.openDatabaseAsync("app.db");
-      await tableInit(db);
+      await initDB(db);
       Database.instance = db;      
     }    
     return Database.instance;
   }
 }
 
+// 🔹 Gera SQL automaticamente
+function generateCreateTableSQL(model: any): string {
+  const columns = Object.entries(model.schema).map(([name, def]: any) => {
+    let column = `${name} ${def.type}`
 
-async function tableInit(db: any.SQLiteDatabase){
-    db.execAsync(`
-        DROP TABLE IF EXISTS checklist_item;
-        DROP TABLE IF EXISTS work_order;
-        DROP TABLE IF EXISTS checklist;
-        
-        CREATE TABLE IF NOT EXISTS checklist_item (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            status INTEGER NOT NULL            
-        );
+    if (def.primary) column += " PRIMARY KEY"
+    if (def.notNull) column += " NOT NULL"
+    if (def.unique) column += " UNIQUE"
+    if (def.default !== undefined) column += ` DEFAULT ${def.default}`
 
-        
-        CREATE TABLE IF NOT EXISTS work_order (
-            operation_code TEXT PRIMARY KEY NOT NULL,
-            client TEXT NOT NULL,
-            symptoms TEXT NOT NULL,
-            chassi TEXT UNIQUE,
-            orimento TEXT,
-            model TEXT,
-            date_in TEXT,
-            date_out TEXT,
-            status TEXT NOT NULL,
-            status_sync INTEGER DEFAULT 1,
-            service TEXT,
-            signature BLOB,
-            insertDate TEXT
-        );
+    return column
+  })
 
-        
-        CREATE TABLE IF NOT EXISTS checklist (
-            id TEXT PRIMARY KEY,
-            checklist_item_fk INTEGER NOT NULL,
-            work_order_fk TEXT NOT NULL,
-            status TEXT NOT NULL,
-            status_sync INTEGER NOT NULL DEFAULT 0,
-            img BLOB,
-            
-            FOREIGN KEY (work_order_fk) REFERENCES work_order(operation_code), 
-            FOREIGN KEY (checklist_item_fk) REFERENCES checklist_item(id)
-        );
-            `
-        );
+  return `
+    CREATE TABLE IF NOT EXISTS ${model.table} (
+      ${columns.join(", ")}
+    );
+  `
 }
+
+// 🔹 Inicialização totalmente async
+export async function initDB(db: any): Promise<void> {
+  try {
+    await db.execAsync("BEGIN TRANSACTION")
+    await db.execAsync(`
+        DROP TABLE IF EXISTS check_list_item;
+        DROP TABLE IF EXISTS work_order;
+        DROP TABLE IF EXISTS check_list;`
+    )
+
+    for (const model of models) {
+      const sql = generateCreateTableSQL(model)
+      await db.execAsync(sql)
+    }
+
+    await db.execAsync("COMMIT")
+  } catch (error) {
+    await db.execAsync("ROLLBACK")
+    console.error("Erro ao inicializar banco:", error)
+    throw error
+  }
+}
+
 
 

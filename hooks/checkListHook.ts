@@ -23,7 +23,7 @@ export default function useCheckListHook(){
     const [dateFilled, setDateFilled] = useState(new Date());
     const [openCalendar, setOpenCalendar] = useState(false);
     const [chassi, setChassi] = useState("");
-    const [orimento, setOrimento] = useState("");
+    const [horimetro, setHorimetro] = useState<number>(0);
     const [modelo, setModelo] = useState("");
 
     const route = useRoute();
@@ -133,7 +133,7 @@ export default function useCheckListHook(){
           client:workOrder.client,
           symptoms:workOrder.symptoms,
           chassi:chassi,
-          orimento:orimento,
+          horimetro:horimetro,
           model:modelo,
           date_in:dateFilled.toISOString(),
           date_out: undefined,
@@ -181,7 +181,7 @@ export default function useCheckListHook(){
 
   return{
     dateFilled, setDate: setDateFilled,openCalendar, setOpen: setOpenCalendar,
-    chassi, setChassi,orimento, setOrimento,
+    chassi, setChassi,horimetro,setHorimetro,
     modelo, setModelo, checklistState, setChecklistState,
     setItemSelected, setItemPhotoUri, workOrder,
     saveData,onChange,takePhoto, checklistItems,setSignature,setOpenSignature,openSignature 

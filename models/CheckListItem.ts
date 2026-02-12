@@ -1,6 +1,6 @@
-import {ColumnDefinition} from "@/repository/types"
+import { ColumnDefinition } from "@/repository/types";
 
-export class CheckListItem {
+export default class CheckListItem {
   // 🔹 Nome da tabela derivado automaticamente
   static get table(): string {
     return this.name
