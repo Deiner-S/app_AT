@@ -1,9 +1,9 @@
 import * as SQLite from "expo-sqlite";
 import Database from "./dbInit";
-
+import { ColumnDefinition } from "./types";
 type OrmModel<T> = {
   table: string;
-  columns: Record<string, string>;
+  schema: Record<string, ColumnDefinition>;
   new (...args: any[]): T;
 };
 
@@ -22,7 +22,7 @@ export default abstract class BaseRepository<T> {
 
   // ---------- helpers ----------
   protected columns() {
-    return Object.values(this.Model.columns);
+    return Object.values(this.Model.schema);
   }
 
   protected values(entity: Partial<T>) {

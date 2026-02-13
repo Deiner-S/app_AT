@@ -9,8 +9,6 @@ const models = [
   CheckListItem,
 
 ]
-
-
 //Singleton: garante que só exista uma instância do banco de dados
 export default class Database {
   private static instance: any | null = null;
