@@ -21,14 +21,12 @@ export default abstract class BaseRepository<T> {
   }
 
   // ---------- helpers ----------
-  protected columns() {
-    return Object.values(this.Model.schema);
+  protected columns() {    
+    return Object.keys(this.Model.schema);
   }
 
   protected values(entity: Partial<T>) {
-    return this.columns().map(
-      col => (entity as any)[col]
-    );
+    return this.columns().map(col => (entity as any)[col]);
   }
 
   protected map(row: any): T {
