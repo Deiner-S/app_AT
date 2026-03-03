@@ -150,6 +150,7 @@ export default function useCheckListHook(){
             checklist_item_fk:checkList.id,
             work_order_fk: workOrder.operation_code,
             status_sync: 0,
+            type: "1",
             status: checkList.selected,
             img: await readImageAsUint8Array(checkList.photoUri),          
           }

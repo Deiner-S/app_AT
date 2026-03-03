@@ -14,6 +14,7 @@ export default class CheckList{
     checklist_item_fk: { type: "TEXT", notNull: true },
     work_order_fk: { type: "TEXT", notNull: true },
     status: { type: "TEXT", notNull: true },
+    type: { type: "TEXT", notNull: true },
     status_sync: { type: "INTEGER" },
     img: { type: "BLOB" }
   };
@@ -23,6 +24,7 @@ export default class CheckList{
     public checklist_item_fk:string,
     public work_order_fk:string,
     public status:string,
+    public type:string,
     public status_sync?: number,
     public img?: Uint8Array | null
   ) {}
