@@ -1,5 +1,6 @@
 import { clearTokenStorange } from '@/storange/authStorange';
 import NetInfo from '@react-native-community/netinfo';
+import { beginRequestLoading, endRequestLoading } from './requestLoadingService';
 import { refreshToken } from './authService';
 
 
@@ -16,30 +17,43 @@ interface RequestOptions {
 }
 
 
-export async function httpRequest<T>(options: RequestOptions, retried = false): Promise <T>{
-    
-    const response = await fetch(`${options.BASE_URL}${options.endpoint}`, {      
-        method: options.method,
-        headers: {'Content-Type': 'application/json',...options.headers},
-        body: options.body ? JSON.stringify(options.body) : undefined,
-    });
-    
-    if (response.status === 401 && !retried) {
-      try {
-        await refreshToken()
-        return httpRequest<T>(options, true)
-      } catch {
-        await clearTokenStorange()
-        throw new Error('SESSION_EXPIRED')
-      }
+export async function httpRequest<T>(
+  options: RequestOptions,
+  retried = false,
+  controlLoading = true
+): Promise<T> {
+    if (controlLoading) {
+      beginRequestLoading();
     }
 
-    if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(`HTTP ${response.status} - ${errorBody || response.statusText}`);
+    try {
+      const response = await fetch(`${options.BASE_URL}${options.endpoint}`, {
+          method: options.method,
+          headers: {'Content-Type': 'application/json',...options.headers},
+          body: options.body ? JSON.stringify(options.body) : undefined,
+      });
+
+      if (response.status === 401 && !retried) {
+        try {
+          await refreshToken()
+          return httpRequest<T>(options, true, false)
+        } catch {
+          await clearTokenStorange()
+          throw new Error('SESSION_EXPIRED')
+        }
+      }
+
+      if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`HTTP ${response.status} - ${errorBody || response.statusText}`);
+      }
+
+      return response.json() as Promise<T>;
+    } finally {
+      if (controlLoading) {
+        endRequestLoading();
+      }
     }
-    
-    return response.json() as Promise<T>;
 }
 
 
