@@ -1,4 +1,5 @@
 import HeaderOSReadOnly from "@/components/checklistComponents/HeaderOSReadOnly";
+import { useSync } from "@/contexts/syncContext";
 import useMaintenanceHook from "@/hooks/maintenanceHook";
 import WorkOrder from "@/models/WorkOrder";
 import WorkOrderRepository from "@/repository/WorkOrderRepository";
@@ -6,6 +7,9 @@ import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,8 +23,11 @@ import { Routes } from "../routes";
 export default function MaintenanceScreen() {
   const route = useRoute();
   const navigation = useNavigation<any>();
+  const { runSync } = useSync();
   const { workOrder: workOrderParam } = (route.params ?? {}) as { workOrder: WorkOrder };
   const [workOrder, setWorkOrder] = useState<WorkOrder | null>(workOrderParam ?? null);
+  const [serviceEditorOpen, setServiceEditorOpen] = useState(false);
+  const [serviceDraft, setServiceDraft] = useState("");
 
   useEffect(() => {
     if (!workOrderParam?.operation_code) return;
@@ -40,10 +47,27 @@ export default function MaintenanceScreen() {
   const displayOrder = workOrder ?? workOrderParam ?? ({} as WorkOrder);
   const { service, setService, saveService, saving } = useMaintenanceHook(displayOrder);
 
+  useEffect(() => {
+    if (!serviceEditorOpen) {
+      setServiceDraft(service);
+    }
+  }, [service, serviceEditorOpen]);
+
+  function openServiceEditor() {
+    setServiceDraft(service);
+    setServiceEditorOpen(true);
+  }
+
+  function applyServiceEditor() {
+    setService(serviceDraft);
+    setServiceEditorOpen(false);
+  }
+
 
   async function handleSave() {
     try {
       await saveService();
+      await runSync();
       navigation.navigate(Routes.HOME);
     } catch (error) {
       console.error("Erro ao salvar serviço", error);
@@ -72,16 +96,15 @@ export default function MaintenanceScreen() {
         <View style={styles.divider} />
 
         <Text style={styles.label}>Serviço realizado:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Descreva o serviço realizado..."
-          placeholderTextColor="#8e8e93"
-          value={service}
-          onChangeText={setService}
-          multiline
-          numberOfLines={6}
-          textAlignVertical="top"
-        />
+        <Pressable
+          onPress={openServiceEditor}
+          style={({ pressed }) => [styles.inputPreview, pressed && styles.inputPreviewPressed]}
+        >
+          <Text style={service ? styles.inputPreviewText : styles.inputPreviewPlaceholder}>
+            {service || "Toque para descrever o serviço realizado..."}
+          </Text>
+          <Text style={styles.editHint}>Toque para editar</Text>
+        </Pressable>
 
         <View style={styles.divider} />
 
@@ -101,6 +124,62 @@ export default function MaintenanceScreen() {
           </Pressable>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={serviceEditorOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={applyServiceEditor}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalKeyboardContainer}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={applyServiceEditor}
+          >
+            <Pressable style={styles.modalCard} onPress={() => undefined}>
+              <Text style={styles.modalTitle}>Editar serviço realizado</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Descreva o serviço realizado..."
+                placeholderTextColor="#8e8e93"
+                value={serviceDraft}
+                onChangeText={setServiceDraft}
+                multiline
+                numberOfLines={8}
+                textAlignVertical="top"
+                autoFocus
+              />
+
+              <View style={styles.modalActions}>
+                <Pressable
+                  onPress={() => setServiceEditorOpen(false)}
+                  style={({ pressed }) => [
+                    styles.modalActionButton,
+                    styles.modalCancelButton,
+                    pressed && styles.modalActionPressed,
+                  ]}
+                >
+                  <Text style={styles.modalActionText}>Cancelar</Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={applyServiceEditor}
+                  style={({ pressed }) => [
+                    styles.modalActionButton,
+                    styles.modalApplyButton,
+                    pressed && styles.modalActionPressed,
+                  ]}
+                >
+                  <Text style={styles.modalActionText}>Aplicar</Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -128,15 +207,30 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontSize: 14,
   },
-  input: {
+  inputPreview: {
     borderWidth: 1,
     borderColor: "#3a3f45",
     padding: 12,
     borderRadius: 10,
     backgroundColor: "#2e3238",
+    minHeight: 120,
+    justifyContent: "space-between",
+  },
+  inputPreviewPressed: {
+    opacity: 0.9,
+  },
+  inputPreviewText: {
     color: "#fff",
     fontSize: 16,
-    minHeight: 120,
+  },
+  inputPreviewPlaceholder: {
+    color: "#8e8e93",
+    fontSize: 16,
+  },
+  editHint: {
+    color: "#9ca3af",
+    fontSize: 12,
+    marginTop: 8,
   },
   divider: {
     height: 2,
@@ -175,5 +269,63 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     letterSpacing: 0.5,
+  },
+  modalKeyboardContainer: {
+    flex: 1,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "flex-end",
+    padding: 16,
+  },
+  modalCard: {
+    backgroundColor: "#25292e",
+    borderColor: "#3a3f45",
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 16,
+  },
+  modalTitle: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 10,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: "#3a3f45",
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: "#2e3238",
+    color: "#fff",
+    fontSize: 16,
+    minHeight: 180,
+  },
+  modalActions: {
+    marginTop: 14,
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalActionButton: {
+    flex: 1,
+    height: 46,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalCancelButton: {
+    backgroundColor: "#3a3f45",
+  },
+  modalApplyButton: {
+    backgroundColor: "#2563EB",
+  },
+  modalActionPressed: {
+    opacity: 0.85,
+  },
+  modalActionText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
   },
 });

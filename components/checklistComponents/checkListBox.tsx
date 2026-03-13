@@ -6,9 +6,11 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 interface ChecklistItemProps {
   checkList: string;
   selected: string | null;
-  setSelected: (value: string | null) => void;
+  setSelected?: (value: string | null) => void;
   handleTakePhoto: () => void;
-  photoUri?: string | null;
+  photoAttached?: boolean;
+  readOnlyStatus?: boolean;
+  photoButtonLabel?: string;
 }
 
 export default function ChecklistBox({
@@ -16,32 +18,46 @@ export default function ChecklistBox({
   selected,
   setSelected,
   handleTakePhoto,
-  photoUri,
+  photoAttached,
+  readOnlyStatus = false,
+  photoButtonLabel = "Foto",
 }: ChecklistItemProps) {
+  const statusLabel =
+    selected === "1" ? "Bom" :
+    selected === "2" ? "Médio" :
+    selected === "3" ? "Ruim" :
+    "Não informado";
+
   return (
     
     <View style={styles.checklist_container}>
       <Text style={styles.checklistText}>{checkList}</Text>
 
       <View style={styles.row}>
-        <Picker
-          selectedValue={selected}
-          onValueChange={(itemValue) => setSelected(itemValue)}
-          dropdownIconColor="white"
-          style={styles.picker}
-        >
-          <Picker.Item label="Conservação ?" value={null} />
-          <Picker.Item label="Bom" value="1" />
-          <Picker.Item label="Médio" value="2" />
-          <Picker.Item label="Ruim" value="3" />
-        </Picker>
+        {readOnlyStatus ? (
+          <View style={styles.statusBadge}>
+            <Text style={styles.statusLabel}>{statusLabel}</Text>
+          </View>
+        ) : (
+          <Picker
+            selectedValue={selected}
+            onValueChange={(itemValue) => setSelected?.(itemValue)}
+            dropdownIconColor="white"
+            style={styles.picker}
+          >
+            <Picker.Item label="Conservação ?" value={null} />
+            <Picker.Item label="Bom" value="1" />
+            <Picker.Item label="Médio" value="2" />
+            <Picker.Item label="Ruim" value="3" />
+          </Picker>
+        )}
 
         <Pressable onPress={handleTakePhoto} style={styles.button}>
           <Ionicons name="camera-outline" size={20} color="#333" />
-          <Text>Foto</Text>
+          <Text>{photoButtonLabel}</Text>
         </Pressable>
 
-        {photoUri && selected != null && (
+        {photoAttached && selected != null && (
           <Ionicons
             style={{ margin: 5 }}
             name="checkmark-circle"
@@ -77,6 +93,18 @@ const styles = StyleSheet.create({
     picker: {
         color: "white",
         width: 200,
+    },
+    statusBadge: {
+      minWidth: 120,
+      marginLeft: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 8,
+      backgroundColor: "#3a3f45",
+    },
+    statusLabel: {
+      color: "#fff",
+      fontWeight: "600",
     },
     button: {
         marginLeft: "auto",

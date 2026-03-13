@@ -12,32 +12,32 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface ChecklistStateItem {
   id: string;
+  checklistId?: string;
   selected: string | null;
-  photoUri: string | null;
+  photoInUri: string | null;
+  photoOutUri: string | null;
+  hasPhotoIn: boolean;
+  hasPhotoOut: boolean;
 }
 
-export type ChecklistType = "1" | "2";
+export type ChecklistStage = "collection" | "delivery";
 
-export interface ChecklistWorkOrderUpdatePayload {
-  chassi?: string;
-  horimetro?: number;
-  model?: string;
-  date_in?: string;
-  date_out?: string;
-  status?: string;
-  service?: string;
-  signature_in?: string;
-  signature_out?: string;
-}
+type ChecklistWorkOrderUpdatePayload =
+  Partial<Pick<WorkOrder, "chassi" | "horimetro" | "model" | "date_in" | "date_out" | "status" | "service">> & {
+    signature_in?: string;
+    signature_out?: string;
+  };
 
 export interface ChecklistItemPayload {
+  checklist_id?: string;
   checklist_item_fk: string;
   status: string | null;
-  photoUri: string | null;
+  photoInUri: string | null;
+  photoOutUri: string | null;
 }
 
 export interface ChecklistSavePayload {
-  type: ChecklistType;
+  stage: ChecklistStage;
   workOrder: WorkOrder;
   workOrderUpdate?: ChecklistWorkOrderUpdatePayload;
   items: ChecklistItemPayload[];
@@ -61,11 +61,6 @@ export default function useCheckListHook(){
     
     const [checkListRepositor, setCheckListRepository] = useState<CheckListRepository>()
     const [workOrderRepository, setWorkOrderRepository] = useState<WorkOrderRepository>()
-    useEffect(()=>{
-
-        
-
-    })
 
     useEffect(() => {
       
@@ -94,16 +89,43 @@ export default function useCheckListHook(){
       };
     }, []);
 
-
     useEffect(() => {
-      setChecklistState(
-        checklistItems.map(item => ({
-          id: item.id,
-          selected: null,
-          photoUri: null,
-        }))
-      );
-    }, [checklistItems]);
+      let cancelled = false;
+
+      async function hydrateChecklistState() {
+        if (!checkListRepositor || checklistItems.length === 0) return;
+
+        const existingRows = await checkListRepositor.getAll();
+        const existingByItem = new Map(
+          existingRows
+            .filter((row) => row.work_order_fk === workOrder.operation_code)
+            .map((row) => [row.checklist_item_fk, row])
+        );
+
+        if (cancelled) return;
+
+        setChecklistState(
+          checklistItems.map((item) => {
+            const existing = existingByItem.get(item.id);
+            return {
+              id: item.id,
+              checklistId: existing?.id,
+              selected: existing?.status ?? null,
+              photoInUri: null,
+              photoOutUri: null,
+              hasPhotoIn: !!existing?.img_in,
+              hasPhotoOut: !!existing?.img_out,
+            };
+          })
+        );
+      }
+
+      hydrateChecklistState();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [checkListRepositor, checklistItems, workOrder.operation_code]);
 
 
     
@@ -115,15 +137,23 @@ export default function useCheckListHook(){
       );
     }
 
-    function setItemPhotoUri(id: string, uri: string) {
+    function setItemPhotoInUri(id: string, uri: string) {
       setChecklistState(prev =>
         prev.map(item =>
-          item.id === id ? { ...item, photoUri: uri } : item
+          item.id === id ? { ...item, photoInUri: uri, hasPhotoIn: true } : item
+        )
+      );
+    }
+
+    function setItemPhotoOutUri(id: string, uri: string) {
+      setChecklistState(prev =>
+        prev.map(item =>
+          item.id === id ? { ...item, photoOutUri: uri, hasPhotoOut: true } : item
         )
       );
     }
     function base64ToUint8Array(base64: string): Uint8Array {
-      console.log("consegui ?")
+      
       const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, '');
       const binary = atob(cleanBase64);
       const len = binary.length;
@@ -186,19 +216,42 @@ export default function useCheckListHook(){
         throw new Error("CheckListRepository not initialized");
       }
 
-      for (const item of checklist.items) {
-        if (item.status && item.photoUri) {
-          const novo_checklist: CheckList = {
-            id: uuidv4(),
-            checklist_item_fk: item.checklist_item_fk,
-            work_order_fk: checklist.workOrder.operation_code,
-            status_sync: 0,
-            type: checklist.type,
-            status: item.status,
-            img: await readImageAsUint8Array(item.photoUri),
-          };
+      const checklistRows = await checkListRepositor.getAll();
+      const rowsByItem = new Map(
+        checklistRows
+          .filter((row) => row.work_order_fk === checklist.workOrder.operation_code)
+          .map((row) => [row.checklist_item_fk, row])
+      );
 
-          await checkListRepositor.save(novo_checklist);
+      for (const item of checklist.items) {
+        const existing = rowsByItem.get(item.checklist_item_fk);
+        const resolvedStatus = item.status ?? existing?.status;
+
+        if (!resolvedStatus) {
+          continue;
+        }
+
+        const resolvedImgIn = item.photoInUri
+          ? await readImageAsUint8Array(item.photoInUri)
+          : existing?.img_in ?? null;
+        const resolvedImgOut = item.photoOutUri
+          ? await readImageAsUint8Array(item.photoOutUri)
+          : existing?.img_out ?? null;
+
+        const nextChecklist: CheckList = {
+          id: existing?.id ?? item.checklist_id ?? uuidv4(),
+          checklist_item_fk: item.checklist_item_fk,
+          work_order_fk: checklist.workOrder.operation_code,
+          status_sync: 0,
+          status: resolvedStatus,
+          img_in: resolvedImgIn,
+          img_out: resolvedImgOut,
+        };
+
+        if (existing) {
+          await checkListRepositor.update(nextChecklist);
+        } else {
+          await checkListRepositor.save(nextChecklist);
         }
       }
     };
@@ -209,12 +262,12 @@ export default function useCheckListHook(){
     };
 
     const buildChecklistPayload = (
-      type: ChecklistType,
+      stage: ChecklistStage,
       currentWorkOrder: WorkOrder = workOrder
     ): ChecklistSavePayload => ({
-      type,
+      stage,
       workOrder: currentWorkOrder,
-      workOrderUpdate: type === "1"
+      workOrderUpdate: stage === "collection"
         ? {
             chassi,
             horimetro,
@@ -229,9 +282,11 @@ export default function useCheckListHook(){
             signature_out: signature,
           },
       items: checklistState.map((item) => ({
+        checklist_id: item.checklistId,
         checklist_item_fk: item.id,
         status: item.selected,
-        photoUri: item.photoUri,
+        photoInUri: stage === "collection" ? item.photoInUri : null,
+        photoOutUri: stage === "delivery" ? item.photoOutUri : null,
       })),
     });
 
@@ -243,14 +298,19 @@ export default function useCheckListHook(){
     if (selectedDate) setDateFilled(selectedDate);
   }
 
-  const takePhoto = async (itemID:string) => {
+  const takePhoto = async (itemID:string, target: "in" | "out" = "in") => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     
     if (!permission.granted) return alert("Permita acesso à câmera.");
     const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
 
-    if (!result.canceled)
-      setItemPhotoUri(itemID, result.assets[0].uri);
+    if (!result.canceled) {
+      if (target === "in") {
+        setItemPhotoInUri(itemID, result.assets[0].uri);
+      } else {
+        setItemPhotoOutUri(itemID, result.assets[0].uri);
+      }
+    }
   }
   //aqui precisamos fazer um readall do banco que contem o conjunto de checklist a serem feitos
   
@@ -259,7 +319,7 @@ export default function useCheckListHook(){
     dateFilled, setDate: setDateFilled,openCalendar, setOpen: setOpenCalendar,
     chassi, setChassi,horimetro,setHorimetro,
     modelo, setModelo, checklistState, setChecklistState,
-    setItemSelected, setItemPhotoUri, workOrder,
+    setItemSelected, setItemPhotoInUri, setItemPhotoOutUri, workOrder,
     saveWorkOrderData, saveChecklistItems,
     saveData,buildChecklistPayload,onChange,takePhoto, checklistItems,
     signature, setSignature,setOpenSignature,openSignature 

@@ -1,6 +1,7 @@
 import ChecklistBox from '@/components/checklistComponents/checkListBox';
 import HeaderOS from '@/components/checklistComponents/HeaderOS';
 import Signature from '@/components/checklistComponents/signature';
+import { useSync } from '@/contexts/syncContext';
 import useCheckListHook from '@/hooks/checkListHook';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from 'expo-router';
@@ -13,12 +14,14 @@ export default function CheckList() {
   
   const checkList = useCheckListHook()
   const navigation = useNavigation<any>();
+  const { runSync } = useSync();
   const hasSignature = !!checkList.signature;
 
   async function handleSave() {
       try {
-        const checklistPayload = checkList.buildChecklistPayload("1");
+        const checklistPayload = checkList.buildChecklistPayload("collection");
         await checkList.saveData(checklistPayload);
+        await runSync();
         navigation.navigate(Routes.HOME); 
       } catch (error) {
         console.error("Erro ao salvar formulário", error);
@@ -52,8 +55,12 @@ export default function CheckList() {
               checkList={item.name}
               selected={checkList.checklistState.find(i => i.id === item.id)?.selected ?? null}
               setSelected={(value) => checkList.setItemSelected(item.id, value)}
-              handleTakePhoto={() => checkList.takePhoto(item.id)}
-              photoUri={checkList.checklistState.find(i => i.id === item.id)?.photoUri ?? null}
+              handleTakePhoto={() => checkList.takePhoto(item.id, "in")}
+              photoButtonLabel="Foto"
+              photoAttached={
+                (checkList.checklistState.find(i => i.id === item.id)?.hasPhotoIn ?? false) ||
+                !!checkList.checklistState.find(i => i.id === item.id)?.photoInUri
+              }
             />
           ))}
           <View style={styles.content}>

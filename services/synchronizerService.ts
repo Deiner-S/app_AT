@@ -114,7 +114,7 @@ export default class Synchronizer{
             if(response.ok){
                 for(const workOrder of workOrdersFiltered){
                     workOrder.status_sync = 1
-                    workOrderRepository.update(workOrder)
+                    await workOrderRepository.update(workOrder)
                 }
             }else{
                 console.log(`throw Error: Failed to connect to endpoint:${endPoint}`)
@@ -141,7 +141,7 @@ export default class Synchronizer{
             if(response.ok){
                 for(const checkList of checkListsFiltered){
                     checkList.status_sync = 1
-                    checkListRepository.update(checkList)
+                    await checkListRepository.update(checkList)
                 }
             }else{
                 console.log(`throw Error: Failed to connect to endpoint:${endPoint}`)

@@ -1,9 +1,11 @@
 import OsCard from '@/components/homeComponents/orderBox';
 import { useSync } from '@/contexts/syncContext';
 import useHomeHook, { WORK_ORDER_STATUS_OPTIONS } from '@/hooks/homeHook';
-import React, { useMemo, useEffect } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { PanResponder, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const SWIPE_THRESHOLD = 40;
 
 export default function Index() {
   const { workOrders, selectedStatus, setSelectedStatus, reload } = useHomeHook();
@@ -20,8 +22,53 @@ export default function Index() {
     return workOrders.filter((item) => item.status === selectedStatus);
   }, [workOrders, selectedStatus]);
 
+  const moveFilter = useCallback((direction: 'left' | 'right') => {
+    const currentIndex = Math.max(
+      WORK_ORDER_STATUS_OPTIONS.findIndex((opt) => opt.value === selectedStatus),
+      0
+    );
+
+    const nextIndex =
+      direction === 'left'
+        ? Math.min(currentIndex + 1, WORK_ORDER_STATUS_OPTIONS.length - 1)
+        : Math.max(currentIndex - 1, 0);
+
+    const nextValue = WORK_ORDER_STATUS_OPTIONS[nextIndex]?.value;
+    if (nextValue && nextValue !== selectedStatus) {
+      setSelectedStatus(nextValue);
+    }
+  }, [selectedStatus, setSelectedStatus]);
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          Math.abs(gestureState.dx) > 12 &&
+          Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
+        onPanResponderRelease: (_, gestureState) => {
+          if (
+            Math.abs(gestureState.dx) < SWIPE_THRESHOLD ||
+            Math.abs(gestureState.dx) <= Math.abs(gestureState.dy)
+          ) {
+            return;
+          }
+
+          if (gestureState.dx < 0) {
+            moveFilter('left');
+          } else {
+            moveFilter('right');
+          }
+        },
+      }),
+    [moveFilter]
+  );
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "#000" }}
+      edges={['left', 'right', 'bottom']}
+      {...panResponder.panHandlers}
+    >
       <ScrollView
         horizontal
         style={styles.filterRow}

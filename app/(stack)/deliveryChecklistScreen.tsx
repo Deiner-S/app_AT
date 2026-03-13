@@ -1,6 +1,7 @@
 import ChecklistBox from '@/components/checklistComponents/checkListBox';
 import HeaderOSReadOnly from '@/components/checklistComponents/HeaderOSReadOnly';
 import Signature from '@/components/checklistComponents/signature';
+import { useSync } from '@/contexts/syncContext';
 import useCheckListHook from '@/hooks/checkListHook';
 import { Ionicons } from '@expo/vector-icons';
 import WorkOrder from '@/models/WorkOrder';
@@ -15,6 +16,7 @@ import { Routes } from '../routes';
 export default function DeliveryChecklistScreen() {
   const checkList = useCheckListHook();
   const navigation = useNavigation<any>();
+  const { runSync } = useSync();
   const route = useRoute();
   const { workOrder: workOrderParam } = (route.params ?? {}) as { workOrder: WorkOrder };
   const [workOrder, setWorkOrder] = useState<WorkOrder | null>(workOrderParam ?? null);
@@ -43,8 +45,9 @@ export default function DeliveryChecklistScreen() {
 
   async function handleSave() {
     try {
-      const checklistPayload = checkList.buildChecklistPayload('2', displayOrder);
+      const checklistPayload = checkList.buildChecklistPayload('delivery', displayOrder);
       await checkList.saveData(checklistPayload);
+      await runSync();
       navigation.navigate(Routes.HOME);
     } catch (error) {
       console.error('Erro ao salvar checklist de entrega', error);
@@ -63,9 +66,13 @@ export default function DeliveryChecklistScreen() {
             key={item.id}
             checkList={item.name}
             selected={checkList.checklistState.find((i) => i.id === item.id)?.selected ?? null}
-            setSelected={(value) => checkList.setItemSelected(item.id, value)}
-            handleTakePhoto={() => checkList.takePhoto(item.id)}
-            photoUri={checkList.checklistState.find((i) => i.id === item.id)?.photoUri ?? null}
+            readOnlyStatus
+            handleTakePhoto={() => checkList.takePhoto(item.id, 'out')}
+            photoButtonLabel="Foto"
+            photoAttached={
+              (checkList.checklistState.find((i) => i.id === item.id)?.hasPhotoOut ?? false) ||
+              !!checkList.checklistState.find((i) => i.id === item.id)?.photoOutUri
+            }
           />
         ))}
 
