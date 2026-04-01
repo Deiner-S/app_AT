@@ -3,10 +3,9 @@ import HeaderOSReadOnly from '@/components/checklistComponents/HeaderOSReadOnly'
 import Signature from '@/components/checklistComponents/signature';
 import { useSync } from '@/contexts/syncContext';
 import useCheckListHook from '@/hooks/checkListHook';
+import { Ionicons } from '@expo/vector-icons';
 import WorkOrder from '@/models/WorkOrder';
 import WorkOrderRepository from '@/repository/WorkOrderRepository';
-import { executeControllerTask } from '@/services/controllerErrorService';
-import { Ionicons } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -45,14 +44,14 @@ export default function DeliveryChecklistScreen() {
   const hasSignature = !!checkList.signature;
 
   async function handleSave() {
-    await executeControllerTask(async () => {
+    try {
       const checklistPayload = checkList.buildChecklistPayload('delivery', displayOrder);
       await checkList.saveData(checklistPayload);
       await runSync();
       navigation.navigate(Routes.HOME);
-    }, {
-      operation: 'salvar checklist de entrega',
-    });
+    } catch (error) {
+      console.error('Erro ao salvar checklist de entrega', error);
+    }
   }
 
   return (

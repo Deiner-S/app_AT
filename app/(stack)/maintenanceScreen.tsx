@@ -1,3 +1,4 @@
+import AppShell from "@/components/appShell/AppShell";
 import HeaderOSReadOnly from "@/components/checklistComponents/HeaderOSReadOnly";
 import { useSync } from "@/contexts/syncContext";
 import useMaintenanceHook from "@/hooks/maintenanceHook";
@@ -13,13 +14,11 @@ import {
   Modal,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Routes } from "../routes";
 
 export default function MaintenanceScreen() {
@@ -33,7 +32,9 @@ export default function MaintenanceScreen() {
 
   useEffect(() => {
     if (!workOrderParam?.operation_code) return;
+
     let cancelled = false;
+
     (async () => {
       try {
         const repo = await WorkOrderRepository.build();
@@ -43,7 +44,10 @@ export default function MaintenanceScreen() {
         if (!cancelled && workOrderParam) setWorkOrder(workOrderParam);
       }
     })();
-    return () => { cancelled = true; };
+
+    return () => {
+      cancelled = true;
+    };
   }, [workOrderParam?.operation_code]);
 
   const displayOrder = workOrder ?? workOrderParam ?? ({} as WorkOrder);
@@ -71,43 +75,44 @@ export default function MaintenanceScreen() {
       await runSync();
       navigation.navigate(Routes.HOME);
     }, {
-      operation: 'salvar serviço',
+      operation: "salvar servico",
     });
   }
 
   if (!workOrderParam) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.container}>
-          <Text style={styles.errorText}>Ordem de serviÃ§o nÃ£o informada.</Text>
+      <AppShell title="Manutencao" subtitle="Dados da ordem nao informados">
+        <View style={styles.content}>
+          <Text style={styles.errorText}>Ordem de servico nao informada.</Text>
         </View>
-      </SafeAreaView>
+      </AppShell>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={["left", "right", "bottom"]}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
+    <AppShell
+      title="Manutencao"
+      subtitle={`OS ${displayOrder.operation_code} - ${displayOrder.client}`}
+    >
+      <View style={styles.content}>
         <HeaderOSReadOnly workOrder={displayOrder} />
 
-        <View style={styles.divider} />
-
-        <Text style={styles.label}>ServiÃ§o realizado:</Text>
-        <Pressable
-          onPress={openServiceEditor}
-          style={({ pressed }) => [styles.inputPreview, pressed && styles.inputPreviewPressed]}
-        >
-          <Text style={service ? styles.inputPreviewText : styles.inputPreviewPlaceholder}>
-            {service || "Toque para descrever o serviÃ§o realizado..."}
+        <View style={styles.editorCard}>
+          <Text style={styles.cardTitle}>Servico realizado</Text>
+          <Text style={styles.cardSubtitle}>
+            Registre de forma objetiva o que foi executado na manutencao.
           </Text>
-          <Text style={styles.editHint}>Toque para editar</Text>
-        </Pressable>
 
-        <View style={styles.divider} />
+          <Pressable
+            onPress={openServiceEditor}
+            style={({ pressed }) => [styles.inputPreview, pressed && styles.inputPreviewPressed]}
+          >
+            <Text style={service ? styles.inputPreviewText : styles.inputPreviewPlaceholder}>
+              {service || "Toque para descrever o servico realizado..."}
+            </Text>
+            <Text style={styles.editHint}>Toque para editar</Text>
+          </Pressable>
+        </View>
 
         <View style={styles.footer}>
           <Pressable
@@ -124,7 +129,7 @@ export default function MaintenanceScreen() {
             </Text>
           </Pressable>
         </View>
-      </ScrollView>
+      </View>
 
       <Modal
         visible={serviceEditorOpen}
@@ -136,16 +141,13 @@ export default function MaintenanceScreen() {
           style={styles.modalKeyboardContainer}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <Pressable
-            style={styles.modalBackdrop}
-            onPress={applyServiceEditor}
-          >
+          <Pressable style={styles.modalBackdrop} onPress={applyServiceEditor}>
             <Pressable style={styles.modalCard} onPress={() => undefined}>
-              <Text style={styles.modalTitle}>Editar serviÃ§o realizado</Text>
+              <Text style={styles.modalTitle}>Editar servico realizado</Text>
               <TextInput
                 style={styles.modalInput}
-                placeholder="Descreva o serviÃ§o realizado..."
-                placeholderTextColor="#8e8e93"
+                placeholder="Descreva o servico realizado..."
+                placeholderTextColor="#64748b"
                 value={serviceDraft}
                 onChangeText={(value) => setServiceDraft(sanitizeOnlyLettersNumbersAndSpaces(value))}
                 multiline
@@ -181,82 +183,76 @@ export default function MaintenanceScreen() {
           </Pressable>
         </KeyboardAvoidingView>
       </Modal>
-    </SafeAreaView>
+    </AppShell>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#25292e",
-  },
   content: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 40,
+    paddingTop: 8,
   },
   errorText: {
-    color: "#ccc",
-    padding: 24,
-  },
-  label: {
-    color: "#fff",
-    marginBottom: 8,
+    color: "#fca5a5",
     fontSize: 14,
+  },
+  editorCard: {
+    borderRadius: 22,
+    padding: 18,
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.12)",
+    marginTop: 14,
+    marginBottom: 14,
+  },
+  cardTitle: {
+    color: "#f8fafc",
+    fontSize: 17,
+    fontWeight: "700",
+  },
+  cardSubtitle: {
+    color: "#94a3b8",
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 6,
+    marginBottom: 14,
   },
   inputPreview: {
     borderWidth: 1,
-    borderColor: "#3a3f45",
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: "#2e3238",
-    minHeight: 120,
+    borderColor: "rgba(148, 163, 184, 0.12)",
+    padding: 16,
+    borderRadius: 18,
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    minHeight: 148,
     justifyContent: "space-between",
   },
   inputPreviewPressed: {
-    opacity: 0.9,
+    opacity: 0.88,
   },
   inputPreviewText: {
-    color: "#fff",
+    color: "#f8fafc",
     fontSize: 16,
+    lineHeight: 24,
   },
   inputPreviewPlaceholder: {
-    color: "#8e8e93",
+    color: "#64748b",
     fontSize: 16,
   },
   editHint: {
-    color: "#9ca3af",
+    color: "#38bdf8",
     fontSize: 12,
     marginTop: 8,
-  },
-  divider: {
-    height: 2,
-    width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: 2,
-    marginVertical: 12,
+    fontWeight: "700",
   },
   footer: {
-    padding: 16,
-    alignItems: "center",
+    marginBottom: 8,
   },
   submitButton: {
     width: "100%",
-    maxWidth: 320,
-    height: 52,
+    minHeight: 54,
     backgroundColor: "#2563EB",
-    borderRadius: 12,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
   },
   submitButtonPressed: {
     opacity: 0.85,
@@ -276,30 +272,30 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.55)",
+    backgroundColor: "rgba(2, 6, 23, 0.72)",
     justifyContent: "flex-end",
     padding: 16,
   },
   modalCard: {
-    backgroundColor: "#25292e",
-    borderColor: "#3a3f45",
+    backgroundColor: "#0f172a",
+    borderColor: "rgba(148, 163, 184, 0.18)",
     borderWidth: 1,
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 24,
+    padding: 18,
   },
   modalTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 10,
+    color: "#f8fafc",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 12,
   },
   modalInput: {
     borderWidth: 1,
-    borderColor: "#3a3f45",
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: "#2e3238",
-    color: "#fff",
+    borderColor: "rgba(148, 163, 184, 0.12)",
+    padding: 14,
+    borderRadius: 18,
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    color: "#f8fafc",
     fontSize: 16,
     minHeight: 180,
   },
@@ -311,12 +307,12 @@ const styles = StyleSheet.create({
   modalActionButton: {
     flex: 1,
     height: 46,
-    borderRadius: 10,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
   modalCancelButton: {
-    backgroundColor: "#3a3f45",
+    backgroundColor: "rgba(30, 41, 59, 0.86)",
   },
   modalApplyButton: {
     backgroundColor: "#2563EB",

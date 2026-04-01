@@ -7,10 +7,10 @@ interface HeaderOSReadOnlyProps {
 }
 
 function formatDate(value: string | undefined): string {
-  if (!value) return "—";
+  if (!value) return "--";
   try {
-    const d = new Date(value);
-    return isNaN(d.getTime()) ? value : d.toLocaleDateString("pt-BR");
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString("pt-BR");
   } catch {
     return value;
   }
@@ -18,49 +18,81 @@ function formatDate(value: string | undefined): string {
 
 export default function HeaderOSReadOnly({ workOrder }: HeaderOSReadOnlyProps) {
   return (
-    <View style={styles.content}>
-      <Text style={styles.label}>Cliente:</Text>
-      <Text style={styles.text}>{workOrder.client}</Text>
+    <View style={styles.container}>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Resumo da OS</Text>
 
-      <Text style={styles.label}>Ordem de Serviço:</Text>
-      <Text style={styles.text}>{workOrder.operation_code}</Text>
+        <Text style={styles.label}>Cliente</Text>
+        <Text style={styles.text}>{workOrder.client}</Text>
 
-      <Text style={styles.label}>Problema relatado:</Text>
-      <Text style={styles.text}>{workOrder.symptoms}</Text>
+        <Text style={styles.label}>Ordem de servico</Text>
+        <Text style={styles.text}>{workOrder.operation_code}</Text>
 
-      <Text style={styles.label}>Chassi:</Text>
-      <Text style={styles.text}>{workOrder.chassi ?? "—"}</Text>
+        <Text style={styles.label}>Problema relatado</Text>
+        <Text style={styles.textLast}>{workOrder.symptoms}</Text>
+      </View>
 
-      <Text style={styles.label}>Horímetro:</Text>
-      <Text style={styles.text}>
-        {workOrder.horimetro !== undefined && workOrder.horimetro !== null
-          ? String(workOrder.horimetro)
-          : "—"}
-      </Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Dados do equipamento</Text>
 
-      <Text style={styles.label}>Modelo:</Text>
-      <Text style={styles.text}>{workOrder.model ?? "—"}</Text>
+        <Text style={styles.label}>Chassi</Text>
+        <Text style={styles.text}>{workOrder.chassi ?? "--"}</Text>
 
-      <Text style={styles.label}>Data entrada:</Text>
-      <Text style={styles.text}>{formatDate(workOrder.date_in)}</Text>
+        <Text style={styles.label}>Horimetro</Text>
+        <Text style={styles.text}>
+          {workOrder.horimetro !== undefined && workOrder.horimetro !== null
+            ? String(workOrder.horimetro)
+            : "--"}
+        </Text>
+
+        <Text style={styles.label}>Modelo</Text>
+        <Text style={styles.text}>{workOrder.model ?? "--"}</Text>
+
+        <Text style={styles.label}>Data de entrada</Text>
+        <Text style={styles.textLast}>{formatDate(workOrder.date_in)}</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
-    gap: 16,
-    padding: 6,
+  container: {
+    gap: 14,
+  },
+  section: {
+    borderRadius: 22,
+    padding: 18,
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.12)",
+  },
+  sectionTitle: {
+    color: "#f8fafc",
+    fontSize: 17,
+    fontWeight: "700",
+    marginBottom: 14,
   },
   label: {
-    color: "#fff",
+    color: "#94a3b8",
     marginBottom: 6,
-    fontSize: 14,
+    marginTop: 2,
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
   },
   text: {
-    color: "#ccc",
-    backgroundColor: "#333",
-    padding: 10,
-    borderRadius: 8,
+    color: "#e2e8f0",
+    backgroundColor: "rgba(30, 41, 59, 0.82)",
+    padding: 14,
+    borderRadius: 16,
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  textLast: {
+    color: "#e2e8f0",
+    backgroundColor: "rgba(30, 41, 59, 0.82)",
+    padding: 14,
+    borderRadius: 16,
+    lineHeight: 20,
   },
 });

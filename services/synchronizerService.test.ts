@@ -286,6 +286,42 @@ describe('synchronizerService', () => {
     expect(workOrderRepo.update).not.toHaveBeenCalled();
   });
 
+  it('sendWorkOrders allows in-progress orders without date_out', async () => {
+    const pendingOrder = new WorkOrder(
+      'OP-2',
+      'Client',
+      'Symptoms',
+      '1HGCM82633A123456',
+      123,
+      'TRATOR2026',
+      '2026-03-31T12:00:00.000Z',
+      undefined,
+      '2',
+      0
+    );
+    const workOrderRepo = {
+      getAll: jest.fn().mockResolvedValue([pendingOrder]),
+      update: jest.fn(),
+    };
+    mockWorkOrderBuild.mockResolvedValue(workOrderRepo);
+    mockHttpRequest.mockResolvedValue({ ok: true } as never);
+
+    const instance = await Synchronizer.build();
+    (instance as any).authToken = 'access-token';
+
+    await expect((instance as any).sendWorkOrders('/receive_work_orders_api/')).resolves.toBeUndefined();
+
+    expect(mockHttpRequest).toHaveBeenCalledWith(expect.objectContaining({
+      body: [
+        expect.objectContaining({
+          operation_code: 'OP-2',
+          status: '2',
+          date_in: '2026-03-31T12:00:00.000Z',
+        }),
+      ],
+    }));
+  });
+
   it('sendCheckListsFilleds sends pending checklists and updates them on success', async () => {
     const pendingCheckList = makeCheckList(0);
     const syncedCheckList = makeCheckList(1);

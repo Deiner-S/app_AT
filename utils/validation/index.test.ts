@@ -35,6 +35,48 @@ describe('validation index', () => {
     expect(payload[0].model).toBe('TRATOR2026');
   });
 
+  it('allows in-progress work order payloads without date_out or service', () => {
+    const payload = validateWorkOrderApiEntries([
+      {
+        operation_code: 'OP-2',
+        chassi: '1HGCM82633A123456',
+        horimetro: '123',
+        model: 'TRATOR2026',
+        date_in: '2026-03-31T12:00:00.000Z',
+        status: '2',
+      },
+    ]);
+
+    expect(payload).toEqual([
+      {
+        operation_code: 'OP-2',
+        chassi: '1HGCM82633A123456',
+        horimetro: '123',
+        model: 'TRATOR2026',
+        date_in: '2026-03-31T12:00:00.000Z',
+        status: '2',
+        signature: undefined,
+        signature_in: undefined,
+        signature_out: undefined,
+      },
+    ]);
+  });
+
+  it('requires service for maintenance-stage work order payloads', () => {
+    expect(() =>
+      validateWorkOrderApiEntries([
+        {
+          operation_code: 'OP-3',
+          chassi: '1HGCM82633A123456',
+          horimetro: '123',
+          model: 'TRATOR2026',
+          date_in: '2026-03-31T12:00:00.000Z',
+          status: '3',
+        },
+      ])
+    ).toThrow('sem chaves obrigatorias: service');
+  });
+
   it('rejects unexpected keys in external work order payload', () => {
     expect(() =>
       validateWorkOrderApiEntries([
@@ -95,6 +137,56 @@ describe('validation index', () => {
       'img_in',
       'img_out',
     ]);
+  });
+
+  it('builds in-progress work order payload with only the required operational fields', () => {
+    const workOrder = new WorkOrder(
+      'OP-2',
+      'Client',
+      'Symptoms',
+      '1HGCM82633A123456',
+      123,
+      'TRATOR2026',
+      '2026-03-31T12:00:00.000Z',
+      undefined,
+      '2',
+      0
+    );
+
+    expect(buildWorkOrderApiPayload(workOrder)).toEqual({
+      operation_code: 'OP-2',
+      chassi: '1HGCM82633A123456',
+      horimetro: '123',
+      model: 'TRATOR2026',
+      date_in: '2026-03-31T12:00:00.000Z',
+      status: '2',
+    });
+  });
+
+  it('requires service and omits date_out for maintenance-stage payloads', () => {
+    const workOrder = new WorkOrder(
+      'OP-3',
+      'Client',
+      'Symptoms',
+      '1HGCM82633A123456',
+      123,
+      'TRATOR2026',
+      '2026-03-31T12:00:00.000Z',
+      undefined,
+      '3',
+      0,
+      'Troca filtro'
+    );
+
+    expect(buildWorkOrderApiPayload(workOrder)).toEqual({
+      operation_code: 'OP-3',
+      chassi: '1HGCM82633A123456',
+      horimetro: '123',
+      model: 'TRATOR2026',
+      date_in: '2026-03-31T12:00:00.000Z',
+      status: '3',
+      service: 'Troca filtro',
+    });
   });
 
   it('validates checklist payload structure', () => {

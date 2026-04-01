@@ -48,26 +48,53 @@ export function validateWorkOrderApiEntries(payload: unknown): JsonRecord[] {
     const label = `work_order[${index + 1}]`;
     const entry = validateObject(rawEntry, label);
 
-    validateRequiredKeys(entry, WORK_ORDER_REQUIRED_KEYS, label);
     validateAllowedKeys(entry, WORK_ORDER_ALLOWED_KEYS, label);
-
     const operationCode = validateString(entry.operation_code, 'operation_code').trim();
     assertCondition(operationCode.length > 0, 'operation_code e obrigatorio.');
+    const status = validateWorkOrderStatus(entry.status);
 
-    return {
+    const requiredKeys = [...WORK_ORDER_REQUIRED_KEYS];
+    if (status !== '1') {
+      requiredKeys.push('chassi', 'horimetro', 'model', 'date_in');
+    }
+    if (status === '3' || status === '4') {
+      requiredKeys.push('service');
+    }
+    if (status === '4') {
+      requiredKeys.push('date_out');
+    }
+
+    validateRequiredKeys(entry, requiredKeys, label);
+
+    const payloadEntry: JsonRecord = {
       ...entry,
       operation_code: operationCode,
-      chassi: validateChassi(entry.chassi),
-      horimetro: validateOnlyNumbers(String(entry.horimetro)),
-      model: validateModel(entry.model),
-      date_in: validateIsoDatetime(entry.date_in, 'date_in'),
-      date_out: validateIsoDatetime(entry.date_out, 'date_out'),
-      status: validateWorkOrderStatus(entry.status),
-      service: validateServiceText(entry.service),
+      status,
       signature_in: entry.signature_in,
       signature_out: entry.signature_out,
       signature: entry.signature,
     };
+
+    if (status !== '1') {
+      payloadEntry.chassi = validateChassi(entry.chassi);
+      payloadEntry.horimetro = validateOnlyNumbers(String(entry.horimetro));
+      payloadEntry.model = validateModel(entry.model);
+      payloadEntry.date_in = validateIsoDatetime(entry.date_in, 'date_in');
+    }
+
+    if (status === '3' || status === '4') {
+      payloadEntry.service = validateServiceText(entry.service);
+    } else if (entry.service != null) {
+      payloadEntry.service = validateServiceText(entry.service);
+    }
+
+    if (status === '4') {
+      payloadEntry.date_out = validateIsoDatetime(entry.date_out, 'date_out');
+    } else if (entry.date_out != null) {
+      payloadEntry.date_out = validateIsoDatetime(entry.date_out, 'date_out');
+    }
+
+    return payloadEntry;
   });
 }
 
@@ -95,19 +122,42 @@ export function validateChecklistApiEntries(payload: unknown): JsonRecord[] {
 
 export function buildWorkOrderApiPayload(workOrder: WorkOrder): JsonRecord {
   const validated = validateWorkOrderEntity(workOrder);
+  const status = validateWorkOrderStatus(validated.status);
 
-  return {
+  const payload: JsonRecord = {
     operation_code: validateString(validated.operation_code, 'operation_code').trim(),
-    chassi: validateChassi(requireValue(validated.chassi, 'chassi e obrigatorio.')),
-    horimetro: validateOnlyNumbers(
-      String(validateHorimetro(requireValue(validated.horimetro, 'horimetro e obrigatorio.')))
-    ),
-    model: validateModel(requireValue(validated.model, 'model e obrigatorio.')),
-    date_in: validateIsoDatetime(requireValue(validated.date_in, 'date_in e obrigatorio.'), 'date_in'),
-    date_out: validateIsoDatetime(requireValue(validated.date_out, 'date_out e obrigatorio.'), 'date_out'),
-    status: validateWorkOrderStatus(validated.status),
-    service: validated.service,
+    status,
   };
+
+  if (status !== '1') {
+    payload.chassi = validateChassi(requireValue(validated.chassi, 'chassi e obrigatorio.'));
+    payload.horimetro = validateOnlyNumbers(
+      String(validateHorimetro(requireValue(validated.horimetro, 'horimetro e obrigatorio.')))
+    );
+    payload.model = validateModel(requireValue(validated.model, 'model e obrigatorio.'));
+    payload.date_in = validateIsoDatetime(requireValue(validated.date_in, 'date_in e obrigatorio.'), 'date_in');
+  }
+
+  if (status === '3' || status === '4') {
+    payload.service = requireValue(validated.service, 'service e obrigatorio.');
+  } else if (validated.service) {
+    payload.service = validated.service;
+  }
+
+  if (status === '4') {
+    payload.date_out = validateIsoDatetime(requireValue(validated.date_out, 'date_out e obrigatorio.'), 'date_out');
+  } else if (validated.date_out) {
+    payload.date_out = validateIsoDatetime(validated.date_out, 'date_out');
+  }
+
+  if (validated.signature_in !== undefined) {
+    payload.signature_in = validated.signature_in;
+  }
+  if (validated.signature_out !== undefined) {
+    payload.signature_out = validated.signature_out;
+  }
+
+  return payload;
 }
 
 export function buildChecklistApiPayload(checkList: CheckList): JsonRecord {

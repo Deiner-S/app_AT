@@ -137,6 +137,46 @@ describe('checklistService', () => {
     });
   });
 
+  it('builds delivery payload with date_out and signature_out', () => {
+    const workOrder = createWorkOrder();
+
+    const result = buildChecklistPayload({
+      stage: 'delivery',
+      workOrder,
+      checklistState: [
+        {
+          id: '550e8400-e29b-41d4-a716-446655440001',
+          checklistId: '550e8400-e29b-41d4-a716-446655440010',
+          selected: '1',
+          photoInUri: 'file://photo-in.jpg',
+          photoOutUri: 'file://photo-out.jpg',
+          hasPhotoIn: true,
+          hasPhotoOut: true,
+        },
+      ],
+      chassi: workOrder.chassi!,
+      horimetro: workOrder.horimetro!,
+      modelo: workOrder.model!,
+      dateFilled: new Date('2026-03-31T12:00:00.000Z'),
+      signature: 'signature-data',
+    });
+
+    expect(result.stage).toBe('delivery');
+    expect(result.workOrderUpdate).toEqual(
+      expect.objectContaining({
+        status: '4',
+        signature_out: 'signature-data',
+      })
+    );
+    expect(result.workOrderUpdate?.date_out).toEqual(expect.any(String));
+    expect(result.items[0]).toEqual(
+      expect.objectContaining({
+        photoInUri: null,
+        photoOutUri: 'file://photo-out.jpg',
+      })
+    );
+  });
+
   it('returns selected date when provided', () => {
     const date = new Date('2026-03-31T10:00:00.000Z');
 
@@ -173,6 +213,20 @@ describe('checklistService', () => {
         signature_in: new Uint8Array([9, 9]),
       })
     );
+  });
+
+  it('returns early when there is no work order update to persist', async () => {
+    const repository = {
+      update: jest.fn().mockResolvedValue(true),
+    };
+
+    await saveWorkOrderData(repository as any, {
+      stage: 'collection',
+      workOrder: createWorkOrder(),
+      items: [],
+    });
+
+    expect(repository.update).not.toHaveBeenCalled();
   });
 
   it('updates and creates checklist items with converted images', async () => {
@@ -232,6 +286,30 @@ describe('checklistService', () => {
         img_out: new Uint8Array([3]),
       })
     );
+  });
+
+  it('skips checklist items that still have no resolved status', async () => {
+    const repository = {
+      getAll: jest.fn().mockResolvedValue([]),
+      update: jest.fn().mockResolvedValue(true),
+      save: jest.fn().mockResolvedValue(true),
+    };
+
+    await saveChecklistItems(repository as any, {
+      stage: 'collection',
+      workOrder: createWorkOrder(),
+      items: [
+        {
+          checklist_item_fk: '550e8400-e29b-41d4-a716-446655440002',
+          status: null,
+          photoInUri: null,
+          photoOutUri: null,
+        },
+      ],
+    });
+
+    expect(repository.update).not.toHaveBeenCalled();
+    expect(repository.save).not.toHaveBeenCalled();
   });
 
   it('rejects invalid collection payload before persisting', async () => {

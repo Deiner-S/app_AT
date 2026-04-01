@@ -24,13 +24,12 @@ export default function ChecklistBox({
 }: ChecklistItemProps) {
   const statusLabel =
     selected === "1" ? "Bom" :
-    selected === "2" ? "Médio" :
+    selected === "2" ? "Medio" :
     selected === "3" ? "Ruim" :
-    "Não informado";
+    "Nao informado";
 
   return (
-    
-    <View style={styles.checklist_container}>
+    <View style={styles.container}>
       <Text style={styles.checklistText}>{checkList}</Text>
 
       <View style={styles.row}>
@@ -39,81 +38,103 @@ export default function ChecklistBox({
             <Text style={styles.statusLabel}>{statusLabel}</Text>
           </View>
         ) : (
-          <Picker
-            selectedValue={selected}
-            onValueChange={(itemValue) => setSelected?.(itemValue)}
-            dropdownIconColor="white"
-            style={styles.picker}
-          >
-            <Picker.Item label="Conservação ?" value={null} />
-            <Picker.Item label="Bom" value="1" />
-            <Picker.Item label="Médio" value="2" />
-            <Picker.Item label="Ruim" value="3" />
-          </Picker>
+          <View style={styles.pickerWrap}>
+            <Picker
+              selectedValue={selected}
+              onValueChange={(itemValue) => setSelected?.(itemValue)}
+              dropdownIconColor="#cbd5e1"
+              style={styles.picker}
+            >
+              <Picker.Item label="Conservacao?" value={null} />
+              <Picker.Item label="Bom" value="1" />
+              <Picker.Item label="Medio" value="2" />
+              <Picker.Item label="Ruim" value="3" />
+            </Picker>
+          </View>
         )}
 
-        <Pressable onPress={handleTakePhoto} style={styles.button}>
-          <Ionicons name="camera-outline" size={20} color="#333" />
-          <Text>{photoButtonLabel}</Text>
+        <Pressable onPress={handleTakePhoto} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
+          <Ionicons name="camera-outline" size={20} color="#e2e8f0" />
+          <Text style={styles.buttonText}>{photoButtonLabel}</Text>
         </Pressable>
 
-        {photoAttached && selected != null && (
+        {photoAttached && selected != null ? (
           <Ionicons
-            style={{ margin: 5 }}
+            style={styles.photoAttachedIcon}
             name="checkmark-circle"
             size={26}
-            color="green"
+            color="#22c55e"
           />
-        )}
+        ) : null}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-    checklist_container: {        
-        borderColor: '#3a3f45',
-        borderWidth: 1,
-        borderRadius: 8,
-        backgroundColor: '#2e3238',
-        overflow: 'hidden',
-    },
-    checklistText: {
-        paddingLeft: 10,
-        marginBottom: 6,
-        fontSize: 16,
-        color: "#000",
-        backgroundColor: "#fff"
-    },
-    row: {
-        flexDirection: "row",
-        alignItems: "center",
-        flex: 1,
-    },
-    picker: {
-        color: "white",
-        width: 200,
-    },
-    statusBadge: {
-      minWidth: 120,
-      marginLeft: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 8,
-      backgroundColor: "#3a3f45",
-    },
-    statusLabel: {
-      color: "#fff",
-      fontWeight: "600",
-    },
-    button: {
-        marginLeft: "auto",
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        backgroundColor: "#eee",
-        borderRadius: 8,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-    },
+  container: {
+    borderColor: "rgba(148, 163, 184, 0.12)",
+    borderWidth: 1,
+    borderRadius: 20,
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    overflow: "hidden",
+    padding: 16,
+    marginBottom: 12,
+  },
+  checklistText: {
+    fontSize: 16,
+    color: "#f8fafc",
+    fontWeight: "700",
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  pickerWrap: {
+    flex: 1,
+    minWidth: 190,
+    borderRadius: 16,
+    backgroundColor: "rgba(30, 41, 59, 0.86)",
+    overflow: "hidden",
+  },
+  picker: {
+    color: "#e2e8f0",
+  },
+  statusBadge: {
+    minWidth: 130,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: "rgba(14, 165, 233, 0.14)",
+  },
+  statusLabel: {
+    color: "#bae6fd",
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  button: {
+    marginLeft: "auto",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: "rgba(30, 41, 59, 0.86)",
+    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.12)",
+  },
+  buttonPressed: {
+    opacity: 0.88,
+  },
+  buttonText: {
+    color: "#e2e8f0",
+    fontWeight: "600",
+  },
+  photoAttachedIcon: {
+    marginLeft: 2,
+  },
 });

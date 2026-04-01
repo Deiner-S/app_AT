@@ -11,13 +11,7 @@ export const UUID_PATTERN =
 
 export const WORK_ORDER_REQUIRED_KEYS = [
   'operation_code',
-  'chassi',
-  'horimetro',
-  'model',
-  'date_in',
-  'date_out',
   'status',
-  'service',
 ];
 
 export const CHECKLIST_REQUIRED_KEYS = [
@@ -29,7 +23,14 @@ export const CHECKLIST_REQUIRED_KEYS = [
 ];
 
 export const WORK_ORDER_ALLOWED_KEYS = [
-  ...WORK_ORDER_REQUIRED_KEYS,
+  'operation_code',
+  'chassi',
+  'horimetro',
+  'model',
+  'date_in',
+  'date_out',
+  'status',
+  'service',
   'signature',
   'signature_in',
   'signature_out',
