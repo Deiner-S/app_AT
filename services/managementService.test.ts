@@ -203,6 +203,9 @@ describe('managementService', () => {
           label: 'Rua A, 10 - Cidade/UF',
         },
       ],
+      permissions: {
+        canToggleStatus: true,
+      },
     } as never);
 
     await expect(fetchEmployeeDetail('11111111-1111-4111-8111-111111111111')).resolves.toEqual(
@@ -257,6 +260,9 @@ describe('managementService', () => {
       statusLabel: 'Ativo',
       usageCount: 8,
       insertDate: '2026-03-31T12:00:00.000Z',
+      permissions: {
+        canToggleStatus: true,
+      },
     } as never);
 
     await expect(fetchChecklistItemDetail('11111111-1111-4111-8111-111111111111')).resolves.toEqual(

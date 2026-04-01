@@ -1,10 +1,9 @@
 import AppShell from '@/components/appShell/AppShell';
 import { EmptyState, MetricCard, ModuleCard } from '@/components/management/Cards';
 import useDashboardHook from '@/hooks/useDashboardHook';
-import { useSync } from '@/contexts/syncContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const ICON_MAP: Record<string, keyof typeof MaterialIcons.glyphMap> = {
@@ -16,13 +15,6 @@ const ICON_MAP: Record<string, keyof typeof MaterialIcons.glyphMap> = {
 
 export default function HomeScreen() {
   const { dashboard, loading, error, reload } = useDashboardHook();
-  const { lastSyncAt } = useSync();
-
-  useEffect(() => {
-    if (lastSyncAt) {
-      reload(true);
-    }
-  }, [lastSyncAt, reload]);
 
   return (
     <AppShell

@@ -10,9 +10,10 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet, Text } from 'react-nat
 export default function EmployeeDetailScreen() {
   const params = useLocalSearchParams<{ employeeId?: string }>();
   const { item, loading, error, reload } = useManagementDetail(params.employeeId, fetchEmployeeDetail);
+  const canToggleStatus = item?.permissions.canToggleStatus ?? false;
 
   async function handleToggleStatus() {
-    if (!params.employeeId) {
+    if (!params.employeeId || !canToggleStatus) {
       return;
     }
 
@@ -32,9 +33,13 @@ export default function EmployeeDetailScreen() {
 
       {item ? (
         <>
-          <Pressable style={styles.actionButton} onPress={handleToggleStatus}>
-            <Text style={styles.actionButtonText}>{item.isActive ? 'Desativar funcionario' : 'Reativar funcionario'}</Text>
-          </Pressable>
+          {canToggleStatus ? (
+            <Pressable style={styles.actionButton} onPress={handleToggleStatus}>
+              <Text style={styles.actionButtonText}>{item.isActive ? 'Desativar funcionario' : 'Reativar funcionario'}</Text>
+            </Pressable>
+          ) : (
+            <Text style={styles.helperText}>O sistema web nao liberou alteracao de status para este funcionario.</Text>
+          )}
 
           <DetailSection title="Cadastro">
             <DetailRow label="Nome" value={item.fullName} />
@@ -77,5 +82,11 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: '#f8fafc',
     fontWeight: '700',
+  },
+  helperText: {
+    color: '#94a3b8',
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 12,
   },
 });

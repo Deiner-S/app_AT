@@ -45,6 +45,10 @@ export type DashboardPayload = {
   access: AccessContext;
 };
 
+export type DetailPermissions = {
+  canToggleStatus: boolean;
+};
+
 export type AddressSummary = {
   id: string;
   label: string;
@@ -90,6 +94,7 @@ export type EmployeeListItem = {
 
 export type EmployeeDetail = EmployeeListItem & {
   addresses: AddressSummary[];
+  permissions: DetailPermissions;
 };
 
 export type ChecklistItemListItem = {
@@ -101,7 +106,9 @@ export type ChecklistItemListItem = {
   insertDate?: string;
 };
 
-export type ChecklistItemDetail = ChecklistItemListItem;
+export type ChecklistItemDetail = ChecklistItemListItem & {
+  permissions: DetailPermissions;
+};
 
 export type ChecklistExecutionSummary = {
   id: string;

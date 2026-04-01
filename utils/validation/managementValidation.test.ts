@@ -90,9 +90,13 @@ describe('managementValidation', () => {
           label: 'Rua A, 10 - Cidade/UF',
         },
       ],
+      permissions: {
+        canToggleStatus: true,
+      },
     });
 
     expect(payload.addresses).toHaveLength(1);
+    expect(payload.permissions.canToggleStatus).toBe(true);
   });
 
   it('rejects invalid checklist items payload', () => {

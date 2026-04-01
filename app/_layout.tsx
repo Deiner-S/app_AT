@@ -2,6 +2,7 @@
 import ExceptionMiddleware from '@/middleware/ExceptionMiddleware';
 import RequestLoadingOverlay from '@/components/requestLoadingOverlay';
 import { AuthProvider } from '@/contexts/authProvider';
+import { ManagementAccessProvider } from '@/contexts/managementAccessContext';
 import { RequestLoadingProvider } from '@/contexts/requestLoadingContext';
 import { SyncProvider } from '@/contexts/syncContext';
 import { Slot } from 'expo-router';
@@ -14,10 +15,12 @@ export default function RootLayout() {
       <RequestLoadingProvider>
         <AuthProvider>
           <SyncProvider>
-            <View style={styles.container}>
-              <Slot />
-              <RequestLoadingOverlay />
-            </View>
+            <ManagementAccessProvider>
+              <View style={styles.container}>
+                <Slot />
+                <RequestLoadingOverlay />
+              </View>
+            </ManagementAccessProvider>
           </SyncProvider>
         </AuthProvider>
       </RequestLoadingProvider>

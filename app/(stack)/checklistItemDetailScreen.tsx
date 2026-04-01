@@ -10,9 +10,10 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet, Text } from 'react-nat
 export default function ChecklistItemDetailScreen() {
   const params = useLocalSearchParams<{ itemId?: string }>();
   const { item, loading, error, reload } = useManagementDetail(params.itemId, fetchChecklistItemDetail);
+  const canToggleStatus = item?.permissions.canToggleStatus ?? false;
 
   async function handleToggleStatus() {
-    if (!params.itemId) {
+    if (!params.itemId || !canToggleStatus) {
       return;
     }
 
@@ -32,9 +33,13 @@ export default function ChecklistItemDetailScreen() {
 
       {item ? (
         <>
-          <Pressable style={styles.actionButton} onPress={handleToggleStatus}>
-            <Text style={styles.actionButtonText}>{item.status === 1 ? 'Desativar item' : 'Reativar item'}</Text>
-          </Pressable>
+          {canToggleStatus ? (
+            <Pressable style={styles.actionButton} onPress={handleToggleStatus}>
+              <Text style={styles.actionButtonText}>{item.status === 1 ? 'Desativar item' : 'Reativar item'}</Text>
+            </Pressable>
+          ) : (
+            <Text style={styles.helperText}>O sistema web nao liberou alteracao deste item para o token atual.</Text>
+          )}
 
           <DetailSection title="Cadastro">
             <DetailRow label="Nome" value={item.name} />
@@ -67,5 +72,11 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: '#f8fafc',
     fontWeight: '700',
+  },
+  helperText: {
+    color: '#94a3b8',
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 12,
   },
 });

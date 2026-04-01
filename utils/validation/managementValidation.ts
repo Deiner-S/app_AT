@@ -8,6 +8,7 @@ import type {
   DashboardModule,
   DashboardPayload,
   DashboardSummary,
+  DetailPermissions,
   EmployeeDetail,
   EmployeeListItem,
   OrderDetail,
@@ -40,6 +41,14 @@ function validateOptionalIsoDatetime(value: unknown, fieldName: string): string 
   }
 
   return validateIsoDatetime(value, fieldName);
+}
+
+function validateDetailPermissions(payload: unknown, label: string): DetailPermissions {
+  const entry = validateObject(payload, label);
+
+  return {
+    canToggleStatus: validateBoolean(entry.canToggleStatus, `${label}.canToggleStatus`),
+  };
 }
 
 function validateAccessContext(payload: unknown): AccessContext {
@@ -252,6 +261,7 @@ export function validateEmployeeDetailResponse(payload: unknown): EmployeeDetail
   return {
     ...entry,
     addresses: validateAddressList(detail.addresses, 'employeeDetail.addresses'),
+    permissions: validateDetailPermissions(detail.permissions, 'employeeDetail.permissions'),
   };
 }
 
@@ -260,7 +270,13 @@ export function validateChecklistItemsResponse(payload: unknown): ChecklistItemL
 }
 
 export function validateChecklistItemDetailResponse(payload: unknown): ChecklistItemDetail {
-  return validateChecklistItemListItem(payload, 'checklistItemDetail');
+  const entry = validateChecklistItemListItem(payload, 'checklistItemDetail') as ChecklistItemDetail & JsonRecord;
+  const detail = validateObject(payload, 'checklistItemDetail');
+
+  return {
+    ...entry,
+    permissions: validateDetailPermissions(detail.permissions, 'checklistItemDetail.permissions'),
+  };
 }
 
 export function validateOrdersResponse(payload: unknown): OrderListItem[] {

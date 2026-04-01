@@ -1,5 +1,6 @@
 import { Routes } from '@/app/routes';
 import { useAuth } from '@/contexts/authContext';
+import { useManagementAccess } from '@/contexts/managementAccessContext';
 import { useSync } from '@/contexts/syncContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -32,23 +33,31 @@ export default function AppShell({ title, subtitle, children, rightAction }: App
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { runSync } = useSync();
   const { logout } = useAuth();
+  const { modules, loading } = useManagementAccess();
 
-  const drawerItems = useMemo<DrawerItem[]>(() => [
-    { label: 'Painel', icon: 'dashboard', route: Routes.HOME },
-    { label: 'Ordens', icon: 'assignment', route: Routes.ORDERS },
-    { label: 'Clientes', icon: 'groups', route: Routes.CLIENTS },
-    { label: 'Funcionarios', icon: 'badge', route: Routes.EMPLOYEES },
-    { label: 'Itens checklist', icon: 'fact-check', route: Routes.CHECKLIST_ITEMS },
-    { label: 'Sincronizar', icon: 'sync', action: () => runSync() },
-    {
-      label: 'Sair',
-      icon: 'logout',
-      action: async () => {
-        await logout();
-        router.replace(Routes.LOGIN);
+  const drawerItems = useMemo<DrawerItem[]>(() => {
+    const moduleItems: DrawerItem[] = modules
+      .filter((module) => module.enabled)
+      .map((module) => ({
+        label: module.title,
+        icon: (module.icon as keyof typeof MaterialIcons.glyphMap) ?? 'dashboard',
+        route: module.route,
+      }));
+
+    return [
+      { label: 'Painel', icon: 'dashboard', route: Routes.HOME },
+      ...moduleItems,
+      { label: 'Sincronizar', icon: 'sync', action: () => runSync() },
+      {
+        label: 'Sair',
+        icon: 'logout',
+        action: async () => {
+          await logout();
+          router.replace(Routes.LOGIN);
+        },
       },
-    },
-  ], [logout, runSync]);
+    ];
+  }, [logout, modules, runSync]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -79,6 +88,10 @@ export default function AppShell({ title, subtitle, children, rightAction }: App
           <Pressable style={styles.drawer} onPress={() => undefined}>
             <Text style={styles.drawerEyebrow}>AGRO SERVICE TRACK</Text>
             <Text style={styles.drawerTitle}>Menu operacional</Text>
+
+            {!loading && !modules.some((module) => module.enabled) ? (
+              <Text style={styles.drawerHint}>Nenhum modulo operacional liberado para este usuario no momento.</Text>
+            ) : null}
 
             {drawerItems.map((item) => (
               <Pressable
@@ -206,6 +219,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 8,
     marginBottom: 20,
+  },
+  drawerHint: {
+    color: '#94a3b8',
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 16,
   },
   drawerItem: {
     flexDirection: 'row',
