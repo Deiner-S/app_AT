@@ -1,19 +1,30 @@
 import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { Badge, EmptyState, RecordCard } from '@/components/management/Cards';
+import { useManagementAccess } from '@/contexts/managementAccessContext';
 import useManagementList from '@/hooks/useManagementList';
-import { fetchClients } from '@/services/managementService';
+import { fetchClients } from '@/services/clientService';
 import { formatDateLabel } from '@/utils/managementUi';
+import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useCallback } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function ClientsScreen() {
+  const { access } = useManagementAccess();
   const loadClients = useCallback((search: string) => fetchClients(search), []);
   const { items, searchQuery, setSearchQuery, loading, error } = useManagementList(loadClients);
 
   return (
-    <AppShell title="Clientes" subtitle="Gestao e consulta de clientes">
+    <AppShell
+      title="Clientes"
+      subtitle="Gestao e consulta de clientes"
+      rightAction={access?.can_manage_client ? (
+        <Pressable style={styles.addButton} onPress={() => router.push(`/(stack)/${Routes.CLIENT_CREATE}` as never)}>
+          <MaterialIcons name="person-add-alt-1" size={20} color="#f8fafc" />
+        </Pressable>
+      ) : undefined}
+    >
       <TextInput
         style={styles.searchInput}
         placeholder="Buscar por nome, email, CPF ou CNPJ"
@@ -44,6 +55,14 @@ export default function ClientsScreen() {
 }
 
 const styles = StyleSheet.create({
+  addButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(15, 118, 110, 0.92)',
+  },
   searchInput: {
     borderRadius: 18,
     paddingHorizontal: 16,

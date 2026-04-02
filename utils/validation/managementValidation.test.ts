@@ -1,5 +1,6 @@
 import {
   validateChecklistItemsResponse,
+  validateClientDetailResponse,
   validateClientsResponse,
   validateDashboardResponse,
   validateEmployeeDetailResponse,
@@ -97,6 +98,35 @@ describe('managementValidation', () => {
 
     expect(payload.addresses).toHaveLength(1);
     expect(payload.permissions.canToggleStatus).toBe(true);
+  });
+
+  it('validates client detail payload with permissions', () => {
+    const payload = validateClientDetailResponse({
+      id: '11111111-1111-4111-8111-111111111111',
+      name: 'Cliente 1',
+      email: 'cliente@example.com',
+      phone: '(11) 98765-4321',
+      cpf: null,
+      cnpj: '12.345.678/0001-90',
+      addressCount: 1,
+      insertDate: '2026-03-31T12:00:00',
+      addresses: [
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          label: 'Rua A, 10 - Cidade/UF',
+        },
+      ],
+      recentOrders: [],
+      permissions: {
+        canEditClient: true,
+        canManageAddresses: true,
+        canCreateServiceOrder: true,
+        nextOperationCode: '000002',
+      },
+    });
+
+    expect(payload.permissions.canCreateServiceOrder).toBe(true);
+    expect(payload.permissions.nextOperationCode).toBe('000002');
   });
 
   it('rejects invalid checklist items payload', () => {

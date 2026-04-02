@@ -8,23 +8,26 @@ import { SyncProvider } from '@/contexts/syncContext';
 import { Slot } from 'expo-router';
 import 'react-native-get-random-values';
 import { StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
   return (
-    <ExceptionMiddleware>
-      <RequestLoadingProvider>
-        <AuthProvider>
-          <SyncProvider>
-            <ManagementAccessProvider>
-              <View style={styles.container}>
-                <Slot />
-                <RequestLoadingOverlay />
-              </View>
-            </ManagementAccessProvider>
-          </SyncProvider>
-        </AuthProvider>
-      </RequestLoadingProvider>
-    </ExceptionMiddleware>
+    <SafeAreaProvider>
+      <ExceptionMiddleware>
+        <RequestLoadingProvider>
+          <AuthProvider>
+            <SyncProvider>
+              <ManagementAccessProvider>
+                <View style={styles.container}>
+                  <Slot />
+                  <RequestLoadingOverlay />
+                </View>
+              </ManagementAccessProvider>
+            </SyncProvider>
+          </AuthProvider>
+        </RequestLoadingProvider>
+      </ExceptionMiddleware>
+    </SafeAreaProvider>
   )
 }
 

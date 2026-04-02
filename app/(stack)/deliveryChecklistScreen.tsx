@@ -10,7 +10,7 @@ import { useRoute } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Routes } from '../routes';
 
 export default function DeliveryChecklistScreen() {
@@ -18,6 +18,7 @@ export default function DeliveryChecklistScreen() {
   const navigation = useNavigation<any>();
   const { runSync } = useSync();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
   const { workOrder: workOrderParam } = (route.params ?? {}) as { workOrder: WorkOrder };
   const [workOrder, setWorkOrder] = useState<WorkOrder | null>(workOrderParam ?? null);
 
@@ -55,8 +56,17 @@ export default function DeliveryChecklistScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['left', 'right', 'bottom']}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingTop: 24 + Math.max(insets.top, 0) * 0.2,
+            paddingBottom: 40 + Math.max(insets.bottom, 16),
+          },
+        ]}
+      >
         <HeaderOSReadOnly workOrder={displayOrder} />
 
         <View style={styles.divider} />
@@ -137,8 +147,6 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 40,
     gap: 12,
   },
   divider: {

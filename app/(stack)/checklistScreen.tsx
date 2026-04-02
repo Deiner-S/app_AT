@@ -1,15 +1,19 @@
 import AppShell from "@/components/appShell/AppShell";
 import ChecklistBox from "@/components/checklistComponents/checkListBox";
-import HeaderOS from "@/components/checklistComponents/HeaderOS";
 import Signature from "@/components/checklistComponents/signature";
 import { useSync } from "@/contexts/syncContext";
 import useCheckListHook from "@/hooks/checkListHook";
 import { executeControllerTask } from "@/services/controllerErrorService";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "expo-router";
 import React from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Routes } from "../routes";
+import {
+  sanitizeOnlyLettersAndNumbers,
+  sanitizeOnlyNumbers,
+} from "@/utils/validation";
 
 export default function CheckList() {
   const checkList = useCheckListHook();
@@ -34,21 +38,69 @@ export default function CheckList() {
       subtitle={`OS ${checkList.workOrder.operation_code} - ${checkList.workOrder.client}`}
     >
       <View style={styles.content}>
-        <HeaderOS
-          client={checkList.workOrder.client}
-          operation_code={checkList.workOrder.operation_code}
-          symptoms={checkList.workOrder.symptoms}
-          chassi={checkList.chassi}
-          setChassi={checkList.setChassi}
-          orimento={checkList.horimetro}
-          setOrimento={(value) => checkList.setHorimetro(Number(value) || 0)}
-          modelo={checkList.modelo}
-          setModelo={checkList.setModelo}
-          dateFilled={checkList.dateFilled}
-          openCalendar={checkList.openCalendar}
-          setOpen={checkList.setOpen}
-          onChange={checkList.onChange}
-        />
+        <View style={styles.infoCard}>
+          <Text style={styles.cardTitle}>Problema relatado</Text>
+          <Text style={styles.problemText}>{checkList.workOrder.symptoms}</Text>
+        </View>
+
+        <View style={styles.formCard}>
+          <Text style={styles.cardTitle}>Preenchimento inicial</Text>
+
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Chassi</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Informe o chassi"
+              placeholderTextColor="#64748b"
+              value={checkList.chassi}
+              onChangeText={(value) => checkList.setChassi(sanitizeOnlyLettersAndNumbers(value).toUpperCase())}
+              autoCapitalize="characters"
+              maxLength={17}
+            />
+          </View>
+
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Horimetro</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Informe o horimetro"
+              placeholderTextColor="#64748b"
+              value={String(checkList.horimetro ?? "")}
+              onChangeText={(value) => checkList.setHorimetro(Number(sanitizeOnlyNumbers(value)) || 0)}
+              keyboardType="numeric"
+            />
+          </View>
+
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Modelo</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Informe o modelo"
+              placeholderTextColor="#64748b"
+              value={checkList.modelo}
+              onChangeText={(value) => checkList.setModelo(sanitizeOnlyLettersAndNumbers(value))}
+            />
+          </View>
+
+          <View>
+            <Text style={styles.label}>Data</Text>
+            <Pressable
+              onPress={() => checkList.setOpen(true)}
+              style={({ pressed }) => [styles.dateButton, pressed && styles.dateButtonPressed]}
+            >
+              <Text style={styles.dateText}>{checkList.dateFilled.toLocaleDateString("pt-BR")}</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {checkList.openCalendar ? (
+          <DateTimePicker
+            value={checkList.dateFilled}
+            mode="date"
+            display="default"
+            onChange={checkList.onChange}
+          />
+        ) : null}
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Itens de avaliacao</Text>
@@ -125,6 +177,71 @@ export default function CheckList() {
 const styles = StyleSheet.create({
   content: {
     paddingTop: 8,
+  },
+  infoCard: {
+    borderRadius: 22,
+    padding: 18,
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.12)",
+    marginBottom: 14,
+  },
+  formCard: {
+    borderRadius: 22,
+    padding: 18,
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.12)",
+    marginBottom: 6,
+  },
+  cardTitle: {
+    color: "#f8fafc",
+    fontSize: 17,
+    fontWeight: "700",
+    marginBottom: 14,
+  },
+  problemText: {
+    color: "#e2e8f0",
+    backgroundColor: "rgba(30, 41, 59, 0.82)",
+    padding: 14,
+    borderRadius: 16,
+    lineHeight: 20,
+  },
+  fieldGroup: {
+    marginBottom: 14,
+  },
+  label: {
+    color: "#94a3b8",
+    marginBottom: 6,
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.12)",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    color: "#f8fafc",
+    fontSize: 16,
+  },
+  dateButton: {
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(148, 163, 184, 0.12)",
+  },
+  dateButtonPressed: {
+    opacity: 0.88,
+  },
+  dateText: {
+    color: "#e2e8f0",
+    fontSize: 15,
+    fontWeight: "600",
   },
   sectionHeader: {
     marginTop: 10,

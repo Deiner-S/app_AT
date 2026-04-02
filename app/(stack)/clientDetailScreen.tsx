@@ -1,15 +1,17 @@
+import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { DetailRow, DetailSection, EmptyState, RecordCard } from '@/components/management/Cards';
 import useManagementDetail from '@/hooks/useManagementDetail';
-import { fetchClientDetail } from '@/services/managementService';
+import { fetchClientDetail } from '@/services/clientService';
 import { formatDateLabel } from '@/utils/managementUi';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function ClientDetailScreen() {
   const params = useLocalSearchParams<{ clientId?: string }>();
   const { item, loading, error } = useManagementDetail(params.clientId, fetchClientDetail);
+  const permissions = item?.permissions;
 
   return (
     <AppShell title={item?.name ?? 'Cliente'} subtitle="Detalhes do cadastro">
@@ -18,6 +20,44 @@ export default function ClientDetailScreen() {
 
       {item ? (
         <>
+          {permissions ? (
+            <View style={styles.actionsRow}>
+              {permissions.canEditClient ? (
+                <Pressable
+                  style={styles.actionButton}
+                  onPress={() => router.push({ pathname: `/(stack)/${Routes.CLIENT_EDIT}` as never, params: { clientId: item.id } } as never)}
+                >
+                  <Text style={styles.actionButtonText}>Editar cadastro</Text>
+                </Pressable>
+              ) : null}
+
+              {permissions.canManageAddresses ? (
+                <Pressable
+                  style={styles.actionButton}
+                  onPress={() => router.push({ pathname: `/(stack)/${Routes.CLIENT_ADDRESS_CREATE}` as never, params: { clientId: item.id, clientName: item.name } } as never)}
+                >
+                  <Text style={styles.actionButtonText}>Adicionar endereco</Text>
+                </Pressable>
+              ) : null}
+
+              {permissions.canCreateServiceOrder ? (
+                <Pressable
+                  style={styles.actionButton}
+                  onPress={() => router.push({
+                    pathname: `/(stack)/${Routes.CLIENT_SERVICE_CREATE}` as never,
+                    params: {
+                      clientId: item.id,
+                      clientName: item.name,
+                      operationCode: permissions.nextOperationCode ?? '',
+                    },
+                  } as never)}
+                >
+                  <Text style={styles.actionButtonText}>Adicionar servico</Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : null}
+
           <DetailSection title="Cadastro">
             <DetailRow label="Nome" value={item.name} />
             <DetailRow label="Email" value={item.email} />
@@ -57,5 +97,19 @@ const styles = StyleSheet.create({
     color: '#fca5a5',
     fontSize: 14,
     marginBottom: 12,
+  },
+  actionsRow: {
+    gap: 10,
+    marginBottom: 14,
+  },
+  actionButton: {
+    borderRadius: 18,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: '#0f766e',
+  },
+  actionButtonText: {
+    color: '#f8fafc',
+    fontWeight: '700',
   },
 });

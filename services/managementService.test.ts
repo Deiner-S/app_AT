@@ -146,6 +146,12 @@ describe('managementService', () => {
           insertDate: '2026-03-31T13:00:00.000Z',
         },
       ],
+      permissions: {
+        canEditClient: true,
+        canManageAddresses: true,
+        canCreateServiceOrder: true,
+        nextOperationCode: '000002',
+      },
     } as never);
 
     await expect(fetchClientDetail('11111111-1111-4111-8111-111111111111')).resolves.toEqual(

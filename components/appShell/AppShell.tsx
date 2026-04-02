@@ -8,12 +8,12 @@ import React, { ReactNode, useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type AppShellProps = {
   title: string;
@@ -34,6 +34,7 @@ export default function AppShell({ title, subtitle, children, rightAction }: App
   const { runSync } = useSync();
   const { logout } = useAuth();
   const { modules, loading } = useManagementAccess();
+  const insets = useSafeAreaInsets();
 
   const drawerItems = useMemo<DrawerItem[]>(() => {
     const moduleItems: DrawerItem[] = modules
@@ -60,11 +61,11 @@ export default function AppShell({ title, subtitle, children, rightAction }: App
   }, [logout, modules, runSync]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.backgroundGlowTop} />
       <View style={styles.backgroundGlowBottom} />
 
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: 12 + Math.max(insets.top, 0) * 0.2 }]}>
         <View style={styles.headerLeft}>
           <Pressable style={styles.iconButton} onPress={() => setDrawerVisible(true)}>
             <MaterialIcons name="menu" size={24} color="#f8fafc" />
@@ -79,13 +80,18 @@ export default function AppShell({ title, subtitle, children, rightAction }: App
         {rightAction ? <View style={styles.rightAction}>{rightAction}</View> : null}
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: 36 + Math.max(insets.bottom, 16) },
+        ]}
+      >
         {children}
       </ScrollView>
 
       <Modal transparent visible={drawerVisible} animationType="fade" onRequestClose={() => setDrawerVisible(false)}>
         <Pressable style={styles.overlay} onPress={() => setDrawerVisible(false)}>
-          <Pressable style={styles.drawer} onPress={() => undefined}>
+          <Pressable style={[styles.drawer, { marginTop: 12 + insets.top }]} onPress={() => undefined}>
             <Text style={styles.drawerEyebrow}>AGRO SERVICE TRACK</Text>
             <Text style={styles.drawerTitle}>Menu operacional</Text>
 
@@ -144,7 +150,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 18,
-    paddingTop: 14,
     paddingBottom: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -184,7 +189,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 18,
-    paddingBottom: 36,
+    paddingTop: 4,
   },
   overlay: {
     flex: 1,
@@ -192,7 +197,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   drawer: {
-    marginTop: 12,
     marginLeft: 12,
     width: '80%',
     maxWidth: 320,

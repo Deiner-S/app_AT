@@ -4,6 +4,7 @@ import type {
   ChecklistItemDetail,
   ChecklistItemListItem,
   ClientDetail,
+  ClientDetailPermissions,
   ClientListItem,
   DashboardModule,
   DashboardPayload,
@@ -48,6 +49,17 @@ function validateDetailPermissions(payload: unknown, label: string): DetailPermi
 
   return {
     canToggleStatus: validateBoolean(entry.canToggleStatus, `${label}.canToggleStatus`),
+  };
+}
+
+function validateClientDetailPermissions(payload: unknown, label: string): ClientDetailPermissions {
+  const entry = validateObject(payload, label);
+
+  return {
+    canEditClient: validateBoolean(entry.canEditClient, `${label}.canEditClient`),
+    canManageAddresses: validateBoolean(entry.canManageAddresses, `${label}.canManageAddresses`),
+    canCreateServiceOrder: validateBoolean(entry.canCreateServiceOrder, `${label}.canCreateServiceOrder`),
+    nextOperationCode: validateOptionalString(entry.nextOperationCode, `${label}.nextOperationCode`)?.trim(),
   };
 }
 
@@ -247,6 +259,7 @@ export function validateClientDetailResponse(payload: unknown): ClientDetail {
     ...entry,
     addresses: validateAddressList(detail.addresses, 'clientDetail.addresses'),
     recentOrders: validateCollection(detail.recentOrders, 'clientDetail.recentOrders', validateRelatedOrderSummary),
+    permissions: validateClientDetailPermissions(detail.permissions, 'clientDetail.permissions'),
   };
 }
 
