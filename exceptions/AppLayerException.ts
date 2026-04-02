@@ -40,6 +40,9 @@ export function executeWithLayerException<T, E extends AppLayerException>(
   try {
     return operation();
   } catch (error) {
+    void import('@/utils/loggingUtil').then(({ captureErrorSilently }) => {
+      void captureErrorSilently({ error });
+    });
     const mappedError = mapError?.(error);
 
     if (mappedError) {
@@ -62,6 +65,9 @@ export async function executeAsyncWithLayerException<T, E extends AppLayerExcept
   try {
     return await operation();
   } catch (error) {
+    void import('@/utils/loggingUtil').then(({ captureErrorSilently }) => {
+      void captureErrorSilently({ error });
+    });
     const mappedError = mapError?.(error);
 
     if (mappedError) {

@@ -46,25 +46,16 @@ export default class Synchronizer{
         return executeAsyncWithLayerException(async () => {        
             if(!await hasWebAccess()) throw Error("MISSING_WEB_ACCESS")
                 
-            console.log("getToken")
             const authTokens = await getTokenStorange()
             if(authTokens?.access==null) throw Error("AUTH_TOKEN_MISSING") 
             this.authToken = authTokens.access
-            console.log(this.authToken)
-            
-            console.log("sinc1")
             await this.receivePendingOrders("/send_work_orders_api/")
-            console.log("sinc2")
             await this.receiveCheckListItems("/send_checklist_items_api/")
-            console.log("sinc3")
             await this.sendWorkOrders("/receive_work_orders_api/")
-            console.log("sinc4")
             await this.sendCheckListsFilleds("/receive_checklist_api/")
-            console.log("sinc5")
             await this.sendErrorLogs("/receive_mobile_logs_api/")
             
         }, SynchronizerServiceException, (err) => {
-            console.log(`log Error: ${err}`)
             if (getErrorMessage(err).includes("SESSION_EXPIRED")) {
                 return new SynchronizerServiceException("SESSION_EXPIRED", err)
             }
@@ -83,7 +74,6 @@ export default class Synchronizer{
                 headers: {Authorization: `Bearer ${this.authToken}`,}
             })
             const validatedWorkOrders = validateWorkOrderApiResponse(workOrders)
-            console.log(validatedWorkOrders)
 
             const workOrderRepository = await WorkOrderRepository.build()
             for(const workOrder of validatedWorkOrders){
@@ -123,7 +113,7 @@ export default class Synchronizer{
             const validatedWorkOrders = validateWorkOrderApiEntries(workOrdersFiltered.map((item) => buildWorkOrderApiPayload(item)))
 
             if (validatedWorkOrders.length === 0){
-                console.log(`throw Error: empyt list:${endPoint}`)
+                return;
 
             }else{
 
@@ -143,7 +133,7 @@ export default class Synchronizer{
                         await workOrderRepository.update(workOrder)
                     }
                 }else{
-                    console.log(`throw Error: Failed to connect to endpoint:${endPoint}`)
+                    throw new SynchronizerServiceException(`SYNC_ENDPOINT_FAILURE:${endPoint}`);
                 }
             }
         }, SynchronizerServiceException)
@@ -157,7 +147,7 @@ export default class Synchronizer{
             const validatedChecklists = validateChecklistApiEntries(checkListsFiltered.map((item) => buildChecklistApiPayload(item)))
 
             if (validatedChecklists.length === 0){
-                console.log(`throw Error: empyt list:${endPoint}`)
+                return;
             }else{
                 const response = await httpRequest<{ ok: boolean }>({
                         method: 'POST',
@@ -175,7 +165,7 @@ export default class Synchronizer{
                         await checkListRepository.update(checkList)
                     }
                 }else{
-                    console.log(`throw Error: Failed to connect to endpoint:${endPoint}`)
+                    throw new SynchronizerServiceException(`SYNC_ENDPOINT_FAILURE:${endPoint}`);
                 }
             }
         }, SynchronizerServiceException)
@@ -189,7 +179,7 @@ export default class Synchronizer{
             const validatedLogs = errorLogsFiltered.map((item) => buildErrorLogApiPayload(item))
 
             if (validatedLogs.length === 0){
-                console.log(`throw Error: empyt list:${endPoint}`)
+                return;
             }else{
                 const response = await httpRequest<{ ok: boolean }>({
                         method: 'POST',
@@ -207,7 +197,7 @@ export default class Synchronizer{
                         await errorLogRepository.update(errorLog)
                     }
                 }else{
-                    console.log(`throw Error: Failed to connect to endpoint:${endPoint}`)
+                    throw new SynchronizerServiceException(`SYNC_ENDPOINT_FAILURE:${endPoint}`);
                 }
             }
         }, SynchronizerServiceException)

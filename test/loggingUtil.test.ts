@@ -1,5 +1,5 @@
 import ErrorLogRepository from '@/repository/ErrorLogRepository';
-import { handleHighLevelError, registerErrorLog } from '@/utils/loggingUtil';
+import { captureErrorSilently, handleHighLevelError, registerErrorLog } from '@/utils/loggingUtil';
 
 jest.mock('@/repository/ErrorLogRepository', () => ({
   __esModule: true,
@@ -81,5 +81,37 @@ describe('loggingUtil', () => {
       'Erro',
       'Falha ao salvar checklist. Tente novamente.'
     );
+  });
+
+  it('captures string errors with serialized stacktrace content', async () => {
+    const repository = {
+      save: jest.fn().mockResolvedValue(true),
+    };
+    mockBuild.mockResolvedValue(repository);
+
+    await expect(
+      registerErrorLog({
+        error: 'MANAGEMENT_LIST_RESOURCE_INVALID',
+        user: 'deiner',
+      })
+    ).resolves.toBeUndefined();
+
+    expect(repository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        erro: 'MANAGEMENT_LIST_RESOURCE_INVALID',
+        stacktrace: 'MANAGEMENT_LIST_RESOURCE_INVALID',
+      })
+    );
+  });
+
+  it('captureErrorSilently never rethrows', async () => {
+    mockBuild.mockRejectedValue(new Error('db failed'));
+
+    await expect(
+      captureErrorSilently({
+        error: new Error('silent failure'),
+        user: 'deiner',
+      })
+    ).resolves.toBeUndefined();
   });
 });

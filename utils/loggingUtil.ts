@@ -1,4 +1,3 @@
-import { getErrorMessage } from '@/exceptions/AppLayerException';
 import ErrorLogServiceException from '@/exceptions/ErrorLogServiceException';
 import ErrorLog from '@/models/ErrorLog';
 import ErrorLogRepository from '@/repository/ErrorLogRepository';
@@ -31,31 +30,83 @@ function resolveDeviceModel(): string {
   );
 }
 
-function resolveStackTrace(error: unknown): string | null {
+export function getErrorMessageForLog(error: unknown): string {
   if (error instanceof Error) {
-    return error.stack ?? null;
+    return error.message;
   }
 
-  return null;
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
 }
 
-export async function registerErrorLog({ error, user = 'unknown' }: ErrorLogInput): Promise<void> {
-  try {
-    const repository = await ErrorLogRepository.build();
-    const errorLog: ErrorLog = {
-      id: uuidv4(),
-      osVersion: String(Platform.Version),
-      deviceModel: resolveDeviceModel(),
-      user,
-      erro: getErrorMessage(error),
-      stacktrace: resolveStackTrace(error),
-      horario: new Date().toISOString(),
-      status_sync: 0,
-    };
+function resolveStackTrace(error: unknown): string {
+  if (error instanceof Error) {
+    return error.stack ?? `${error.name}: ${error.message}`;
+  }
 
-    await repository.save(errorLog);
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  try {
+    return JSON.stringify(error, null, 2);
+  } catch {
+    return String(error);
+  }
+}
+
+async function persistErrorLog({ error, user = 'unknown' }: ErrorLogInput): Promise<void> {
+  const repository = await ErrorLogRepository.build();
+  const errorLog: ErrorLog = {
+    id: uuidv4(),
+    osVersion: String(Platform.Version),
+    deviceModel: resolveDeviceModel(),
+    user,
+    erro: getErrorMessageForLog(error),
+    stacktrace: resolveStackTrace(error),
+    horario: new Date().toISOString(),
+    status_sync: 0,
+  };
+
+  await repository.save(errorLog);
+}
+
+export async function registerErrorLog(input: ErrorLogInput): Promise<void> {
+  try {
+    await persistErrorLog(input);
   } catch (registerError) {
-    throw new ErrorLogServiceException(getErrorMessage(registerError), registerError);
+    const registerFailure = new ErrorLogServiceException(
+      getErrorMessageForLog(registerError),
+      registerError
+    );
+
+    if (!(input.error instanceof ErrorLogServiceException)) {
+      try {
+        await persistErrorLog({
+          error: registerFailure,
+          user: input.user,
+        });
+      } catch {
+        throw registerFailure;
+      }
+    } else {
+      throw registerFailure;
+    }
+  }
+}
+
+export async function captureErrorSilently(input: ErrorLogInput): Promise<void> {
+  try {
+    await registerErrorLog(input);
+  } catch {
+    // O fluxo da aplicação não deve quebrar por falha no armazenamento do log.
   }
 }
 
@@ -64,15 +115,6 @@ export async function handleHighLevelError({
   error,
   user,
 }: HighLevelErrorInput): Promise<void> {
-  try {
-    await registerErrorLog({ error, user });
-  } catch (registerError) {
-    if (registerError instanceof ErrorLogServiceException) {
-      console.error(`[handleHighLevelError] ${registerError.name}: ${registerError.message}`);
-    } else {
-      console.error('[handleHighLevelError] Unexpected log failure', registerError);
-    }
-  } finally {
-    Alert.alert('Erro', `Falha ao ${operation}. Tente novamente.`);
-  }
+  await captureErrorSilently({ error, user });
+  Alert.alert('Erro', `Falha ao ${operation}. Tente novamente.`);
 }
