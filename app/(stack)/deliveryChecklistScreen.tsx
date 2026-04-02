@@ -4,11 +4,9 @@ import Signature from '@/components/checklistComponents/signature';
 import { useSync } from '@/contexts/syncContext';
 import useCheckListHook from '@/hooks/checkListHook';
 import { Ionicons } from '@expo/vector-icons';
-import WorkOrder from '@/models/WorkOrder';
-import WorkOrderRepository from '@/repository/WorkOrderRepository';
-import { useRoute } from '@react-navigation/native';
+import { executeControllerTask } from '@/services/controllerErrorService';
 import { useNavigation } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Routes } from '../routes';
@@ -17,42 +15,19 @@ export default function DeliveryChecklistScreen() {
   const checkList = useCheckListHook();
   const navigation = useNavigation<any>();
   const { runSync } = useSync();
-  const route = useRoute();
   const insets = useSafeAreaInsets();
-  const { workOrder: workOrderParam } = (route.params ?? {}) as { workOrder: WorkOrder };
-  const [workOrder, setWorkOrder] = useState<WorkOrder | null>(workOrderParam ?? null);
-
-  useEffect(() => {
-    if (!workOrderParam?.operation_code) return;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const repo = await WorkOrderRepository.build();
-        const loaded = await repo.getById(workOrderParam.operation_code);
-        if (!cancelled && loaded) setWorkOrder(loaded);
-      } catch (_) {
-        if (!cancelled && workOrderParam) setWorkOrder(workOrderParam);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [workOrderParam?.operation_code]);
-
-  const displayOrder = workOrder ?? workOrderParam ?? checkList.workOrder;
+  const displayOrder = checkList.displayOrder;
   const hasSignature = !!checkList.signature;
 
   async function handleSave() {
-    try {
+    await executeControllerTask(async () => {
       const checklistPayload = checkList.buildChecklistPayload('delivery', displayOrder);
       await checkList.saveData(checklistPayload);
       await runSync();
       navigation.navigate(Routes.HOME);
-    } catch (error) {
-      console.error('Erro ao salvar checklist de entrega', error);
-    }
+    }, {
+      operation: 'salvar checklist de entrega',
+    });
   }
 
   return (

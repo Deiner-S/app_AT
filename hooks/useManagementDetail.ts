@@ -1,11 +1,18 @@
+import {
+  type ManagementDetailResource,
+  loadManagementDetail,
+  toggleManagementStatus,
+} from '@/services/managementService';
 import { useCallback, useEffect, useState } from 'react';
 
-type DetailLoader<T> = (id: string) => Promise<T>;
-
-export default function useManagementDetail<T>(identifier: string | undefined, loadData: DetailLoader<T>) {
+export default function useManagementDetail<T>(
+  resource: ManagementDetailResource,
+  identifier: string | undefined
+) {
   const [item, setItem] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async (isRefresh = false) => {
@@ -23,8 +30,8 @@ export default function useManagementDetail<T>(identifier: string | undefined, l
       }
 
       setError(null);
-      const response = await loadData(identifier);
-      setItem(response);
+      const response = await loadManagementDetail(resource, identifier);
+      setItem(response as T);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Falha ao carregar os dados.';
       setError(message);
@@ -32,7 +39,21 @@ export default function useManagementDetail<T>(identifier: string | undefined, l
       setLoading(false);
       setRefreshing(false);
     }
-  }, [identifier, loadData]);
+  }, [identifier, resource]);
+
+  const toggleStatus = useCallback(async () => {
+    if (!identifier) {
+      throw new Error('Identificador invalido.');
+    }
+
+    try {
+      setActionLoading(true);
+      await toggleManagementStatus(resource, identifier);
+      await reload(true);
+    } finally {
+      setActionLoading(false);
+    }
+  }, [identifier, reload, resource]);
 
   useEffect(() => {
     reload();
@@ -42,8 +63,10 @@ export default function useManagementDetail<T>(identifier: string | undefined, l
     item,
     loading,
     refreshing,
+    actionLoading,
     error,
     reload,
     setItem,
+    toggleStatus,
   };
 }

@@ -7,7 +7,10 @@ import {
   fetchDashboard,
   fetchEmployeeDetail,
   fetchEmployees,
+  loadManagementDetail,
+  loadManagementList,
   toggleChecklistItemStatus,
+  toggleManagementStatus,
   toggleEmployeeStatus,
 } from './managementService';
 import { httpRequest } from './networkService';
@@ -235,6 +238,26 @@ describe('managementService', () => {
     });
   });
 
+  it('loads employee list through the management resource gateway', async () => {
+    mockHttpRequest.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        username: 'deiner',
+        fullName: 'Deiner Silva',
+        email: 'deiner@example.com',
+        cpf: '123',
+        phone: '9999',
+        position: '1',
+        positionLabel: 'Gerente',
+        isActive: true,
+        addressCount: 1,
+        insertDate: '2026-03-31T12:00:00.000Z',
+      },
+    ] as never);
+
+    await expect(loadManagementList('employee', '')).resolves.toHaveLength(1);
+  });
+
   it('fetches checklist items with encoded search query', async () => {
     mockHttpRequest.mockResolvedValue([
       {
@@ -290,6 +313,30 @@ describe('managementService', () => {
       timeoutMs: 20000,
       headers: AUTH_HEADERS,
     });
+  });
+
+  it('loads checklist detail through the management resource gateway', async () => {
+    mockHttpRequest.mockResolvedValue({
+      id: '11111111-1111-4111-8111-111111111111',
+      name: 'Freio',
+      status: 1,
+      statusLabel: 'Ativo',
+      usageCount: 8,
+      insertDate: '2026-03-31T12:00:00.000Z',
+      permissions: {
+        canToggleStatus: true,
+      },
+    } as never);
+
+    await expect(loadManagementDetail('checklistItem', '11111111-1111-4111-8111-111111111111')).resolves.toEqual(
+      expect.objectContaining({ name: 'Freio' })
+    );
+  });
+
+  it('toggles employee status through the management resource gateway', async () => {
+    mockHttpRequest.mockResolvedValue({ ok: true } as never);
+
+    await expect(toggleManagementStatus('employee', '11111111-1111-4111-8111-111111111111')).resolves.toBe(true);
   });
 
   it('fails before request when access token is missing', async () => {

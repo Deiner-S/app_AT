@@ -2,15 +2,14 @@ import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { Badge, EmptyState, RecordCard } from '@/components/management/Cards';
 import useManagementList from '@/hooks/useManagementList';
-import { fetchChecklistItems } from '@/services/managementService';
+import type { ChecklistItemListItem } from '@/types/management';
 import { formatDateLabel } from '@/utils/managementUi';
 import { router } from 'expo-router';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function ChecklistItemsScreen() {
-  const loadChecklistItems = useCallback((search: string) => fetchChecklistItems(search), []);
-  const { items, searchQuery, setSearchQuery, loading, error } = useManagementList(loadChecklistItems);
+  const { items, searchQuery, setSearchQuery, loading, error } = useManagementList<ChecklistItemListItem>('checklistItem');
 
   return (
     <AppShell title="Itens de checklist" subtitle="Base de itens utilizados nas OS">

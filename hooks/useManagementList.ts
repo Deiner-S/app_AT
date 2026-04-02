@@ -1,8 +1,10 @@
+import {
+  type ManagementListResource,
+  loadManagementList,
+} from '@/services/managementService';
 import { useCallback, useEffect, useState } from 'react';
 
-type LoadData<T> = (searchQuery: string) => Promise<T[]>;
-
-export default function useManagementList<T>(loadData: LoadData<T>) {
+export default function useManagementList<T>(resource: ManagementListResource) {
   const [items, setItems] = useState<T[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -18,8 +20,8 @@ export default function useManagementList<T>(loadData: LoadData<T>) {
       }
 
       setError(null);
-      const response = await loadData(query);
-      setItems(response);
+      const response = await loadManagementList(resource, query);
+      setItems(response as T[]);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Falha ao carregar os dados.';
       setError(message);
@@ -27,7 +29,7 @@ export default function useManagementList<T>(loadData: LoadData<T>) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [loadData, searchQuery]);
+  }, [resource, searchQuery]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {

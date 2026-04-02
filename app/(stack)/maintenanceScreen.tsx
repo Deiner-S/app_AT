@@ -3,12 +3,10 @@ import HeaderOSReadOnly from "@/components/checklistComponents/HeaderOSReadOnly"
 import { useSync } from "@/contexts/syncContext";
 import useMaintenanceHook from "@/hooks/maintenanceHook";
 import WorkOrder from "@/models/WorkOrder";
-import WorkOrderRepository from "@/repository/WorkOrderRepository";
 import { executeControllerTask } from "@/services/controllerErrorService";
-import { sanitizeOnlyLettersNumbersAndSpaces } from "@/utils/validation";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -26,48 +24,18 @@ export default function MaintenanceScreen() {
   const navigation = useNavigation<any>();
   const { runSync } = useSync();
   const { workOrder: workOrderParam } = (route.params ?? {}) as { workOrder: WorkOrder };
-  const [workOrder, setWorkOrder] = useState<WorkOrder | null>(workOrderParam ?? null);
-  const [serviceEditorOpen, setServiceEditorOpen] = useState(false);
-  const [serviceDraft, setServiceDraft] = useState("");
-
-  useEffect(() => {
-    if (!workOrderParam?.operation_code) return;
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const repo = await WorkOrderRepository.build();
-        const loaded = await repo.getById(workOrderParam.operation_code);
-        if (!cancelled && loaded) setWorkOrder(loaded);
-      } catch (_) {
-        if (!cancelled && workOrderParam) setWorkOrder(workOrderParam);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [workOrderParam?.operation_code]);
-
-  const displayOrder = workOrder ?? workOrderParam ?? ({} as WorkOrder);
-  const { service, setService, saveService, saving } = useMaintenanceHook(displayOrder);
-
-  useEffect(() => {
-    if (!serviceEditorOpen) {
-      setServiceDraft(service);
-    }
-  }, [service, serviceEditorOpen]);
-
-  function openServiceEditor() {
-    setServiceDraft(service);
-    setServiceEditorOpen(true);
-  }
-
-  function applyServiceEditor() {
-    setService(serviceDraft);
-    setServiceEditorOpen(false);
-  }
+  const {
+    displayOrder,
+    service,
+    saving,
+    serviceEditorOpen,
+    serviceDraft,
+    saveService,
+    openServiceEditor,
+    closeServiceEditor,
+    updateServiceDraft,
+    applyServiceEditor,
+  } = useMaintenanceHook(workOrderParam ?? null);
 
   async function handleSave() {
     await executeControllerTask(async () => {
@@ -92,10 +60,10 @@ export default function MaintenanceScreen() {
   return (
     <AppShell
       title="Manutencao"
-      subtitle={`OS ${displayOrder.operation_code} - ${displayOrder.client}`}
+      subtitle={`OS ${displayOrder?.operation_code ?? ""} - ${displayOrder?.client ?? ""}`}
     >
       <View style={styles.content}>
-        <HeaderOSReadOnly workOrder={displayOrder} />
+        {displayOrder ? <HeaderOSReadOnly workOrder={displayOrder} /> : null}
 
         <View style={styles.editorCard}>
           <Text style={styles.cardTitle}>Servico realizado</Text>
@@ -149,7 +117,7 @@ export default function MaintenanceScreen() {
                 placeholder="Descreva o servico realizado..."
                 placeholderTextColor="#64748b"
                 value={serviceDraft}
-                onChangeText={(value) => setServiceDraft(sanitizeOnlyLettersNumbersAndSpaces(value))}
+                onChangeText={updateServiceDraft}
                 multiline
                 numberOfLines={8}
                 textAlignVertical="top"
@@ -158,7 +126,7 @@ export default function MaintenanceScreen() {
 
               <View style={styles.modalActions}>
                 <Pressable
-                  onPress={() => setServiceEditorOpen(false)}
+                  onPress={closeServiceEditor}
                   style={({ pressed }) => [
                     styles.modalActionButton,
                     styles.modalCancelButton,

@@ -1,15 +1,16 @@
 import AppShell from '@/components/appShell/AppShell';
 import { DetailRow, DetailSection, EmptyState, RecordCard } from '@/components/management/Cards';
 import useManagementDetail from '@/hooks/useManagementDetail';
-import { fetchEmployeeDetail, toggleEmployeeStatus } from '@/services/managementService';
+import { executeControllerTask } from '@/services/controllerErrorService';
+import type { EmployeeDetail } from '@/types/management';
 import { formatDateLabel, getBooleanLabel } from '@/utils/managementUi';
 import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
 export default function EmployeeDetailScreen() {
   const params = useLocalSearchParams<{ employeeId?: string }>();
-  const { item, loading, error, reload } = useManagementDetail(params.employeeId, fetchEmployeeDetail);
+  const { item, loading, error, actionLoading, toggleStatus } = useManagementDetail<EmployeeDetail>('employee', params.employeeId);
   const canToggleStatus = item?.permissions.canToggleStatus ?? false;
 
   async function handleToggleStatus() {
@@ -17,13 +18,9 @@ export default function EmployeeDetailScreen() {
       return;
     }
 
-    try {
-      await toggleEmployeeStatus(params.employeeId);
-      await reload(true);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Falha ao atualizar o funcionario.';
-      Alert.alert('Funcionarios', message);
-    }
+    await executeControllerTask(toggleStatus, {
+      operation: 'alterar status de funcionario',
+    });
   }
 
   return (
@@ -34,8 +31,14 @@ export default function EmployeeDetailScreen() {
       {item ? (
         <>
           {canToggleStatus ? (
-            <Pressable style={styles.actionButton} onPress={handleToggleStatus}>
-              <Text style={styles.actionButtonText}>{item.isActive ? 'Desativar funcionario' : 'Reativar funcionario'}</Text>
+            <Pressable style={[styles.actionButton, actionLoading && styles.actionButtonDisabled]} onPress={handleToggleStatus} disabled={actionLoading}>
+              <Text style={styles.actionButtonText}>
+                {actionLoading
+                  ? 'Atualizando...'
+                  : item.isActive
+                    ? 'Desativar funcionario'
+                    : 'Reativar funcionario'}
+              </Text>
             </Pressable>
           ) : (
             <Text style={styles.helperText}>O sistema web nao liberou alteracao de status para este funcionario.</Text>
@@ -82,6 +85,9 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: '#f8fafc',
     fontWeight: '700',
+  },
+  actionButtonDisabled: {
+    opacity: 0.65,
   },
   helperText: {
     color: '#94a3b8',

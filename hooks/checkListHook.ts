@@ -25,6 +25,7 @@ export default function useCheckListHook() {
   const route = useRoute();
   const { workOrder } = route.params as { workOrder: WorkOrder };
 
+  const [loadedWorkOrder, setLoadedWorkOrder] = useState<WorkOrder | null>(workOrder ?? null);
   const [openSignature, setOpenSignature] = useState(false);
   const [signature, setSignature] = useState<string>('');
   const [dateFilled, setDateFilled] = useState(workOrder?.date_in ? new Date(workOrder.date_in) : new Date());
@@ -38,6 +39,10 @@ export default function useCheckListHook() {
 
   const [checkListRepositor, setCheckListRepository] = useState<CheckListRepository>();
   const [workOrderRepository, setWorkOrderRepository] = useState<WorkOrderRepository>();
+
+  useEffect(() => {
+    setLoadedWorkOrder(workOrder ?? null);
+  }, [workOrder]);
 
   useEffect(() => {
     let isMounted = true;
@@ -71,6 +76,31 @@ export default function useCheckListHook() {
   }, []);
 
   useEffect(() => {
+    if (!workOrder?.operation_code) return;
+
+    let cancelled = false;
+
+    (async () => {
+      await executeControllerTask(async () => {
+        const repo = await WorkOrderRepository.build();
+        const loaded = await repo.getById(workOrder.operation_code);
+
+        if (!cancelled && loaded) {
+          setLoadedWorkOrder(loaded);
+        }
+      }, {
+        operation: 'carregar ordem de servico do checklist',
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workOrder]);
+
+  const displayOrder = loadedWorkOrder ?? workOrder;
+
+  useEffect(() => {
     let cancelled = false;
 
     async function hydrateChecklistState() {
@@ -80,7 +110,7 @@ export default function useCheckListHook() {
         const hydratedState = await hydrateChecklistStateService(
           checkListRepositor,
           checklistItems,
-          workOrder.operation_code
+          displayOrder.operation_code
         );
 
         if (cancelled) return;
@@ -96,7 +126,7 @@ export default function useCheckListHook() {
     return () => {
       cancelled = true;
     };
-  }, [checkListRepositor, checklistItems, workOrder.operation_code]);
+  }, [checkListRepositor, checklistItems, displayOrder.operation_code]);
 
   function setItemSelected(id: string, value: string | null) {
     setChecklistState((prev) =>
@@ -152,7 +182,7 @@ export default function useCheckListHook() {
 
   const buildChecklistPayload = (
     stage: ChecklistStage,
-    currentWorkOrder: WorkOrder = workOrder
+    currentWorkOrder: WorkOrder = displayOrder
   ): ChecklistSavePayload =>
     buildChecklistPayloadService({
       stage,
@@ -215,6 +245,7 @@ export default function useCheckListHook() {
     setItemPhotoInUri,
     setItemPhotoOutUri,
     workOrder,
+    displayOrder,
     saveWorkOrderData,
     saveChecklistItems,
     saveData,

@@ -2,15 +2,14 @@ import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { Badge, EmptyState, RecordCard } from '@/components/management/Cards';
 import useManagementList from '@/hooks/useManagementList';
-import { fetchEmployees } from '@/services/managementService';
+import type { EmployeeListItem } from '@/types/management';
 import { formatDateLabel, getBooleanLabel } from '@/utils/managementUi';
 import { router } from 'expo-router';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function EmployeesScreen() {
-  const loadEmployees = useCallback((search: string) => fetchEmployees(search), []);
-  const { items, searchQuery, setSearchQuery, loading, error } = useManagementList(loadEmployees);
+  const { items, searchQuery, setSearchQuery, loading, error } = useManagementList<EmployeeListItem>('employee');
 
   return (
     <AppShell title="Funcionarios" subtitle="Equipe e acessos do sistema">
