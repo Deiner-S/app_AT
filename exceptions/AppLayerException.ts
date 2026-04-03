@@ -1,3 +1,7 @@
+declare const require: <T = any>(moduleName: string) => T;
+
+import { isUserInputValidationException } from '@/exceptions/ValidationException';
+
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
@@ -12,6 +16,22 @@ type AppLayerExceptionConstructor<T extends AppLayerException> = new (
 ) => T;
 
 type ExceptionMapper<T extends AppLayerException> = (error: unknown) => T | null;
+
+function captureLayerErrorSilently(error: unknown): void {
+  if (isUserInputValidationException(error)) {
+    return;
+  }
+
+  try {
+    const { captureErrorSilently } = require<{
+      captureErrorSilently: (input: { error: unknown }) => Promise<void>;
+    }>('@/utils/loggingUtil');
+
+    void captureErrorSilently({ error }).catch(() => undefined);
+  } catch {
+    // Logging failures must never interfere with exception mapping.
+  }
+}
 
 export default class AppLayerException extends Error {
   public readonly originalMessage: string;
@@ -40,9 +60,7 @@ export function executeWithLayerException<T, E extends AppLayerException>(
   try {
     return operation();
   } catch (error) {
-    void import('@/utils/loggingUtil').then(({ captureErrorSilently }) => {
-      void captureErrorSilently({ error });
-    });
+    captureLayerErrorSilently(error);
     const mappedError = mapError?.(error);
 
     if (mappedError) {
@@ -65,9 +83,7 @@ export async function executeAsyncWithLayerException<T, E extends AppLayerExcept
   try {
     return await operation();
   } catch (error) {
-    void import('@/utils/loggingUtil').then(({ captureErrorSilently }) => {
-      void captureErrorSilently({ error });
-    });
+    captureLayerErrorSilently(error);
     const mappedError = mapError?.(error);
 
     if (mappedError) {

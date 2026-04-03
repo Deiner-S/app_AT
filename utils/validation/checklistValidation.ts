@@ -1,3 +1,4 @@
+import { rethrowAsValidationException } from '@/exceptions/ValidationException';
 import type {
   ChecklistItemPayload,
   ChecklistSavePayload,
@@ -17,52 +18,58 @@ export function validateChecklistWorkOrderUpdatePayload(
   payload: ChecklistWorkOrderUpdatePayload,
   stage: ChecklistSavePayload['stage']
 ): ChecklistWorkOrderUpdatePayload {
-  const nextPayload: ChecklistWorkOrderUpdatePayload = {};
+  return rethrowAsValidationException('user_input', () => {
+    const nextPayload: ChecklistWorkOrderUpdatePayload = {};
 
-  if (stage === 'collection') {
-    nextPayload.chassi = validateChassi(payload.chassi);
-    nextPayload.horimetro = validateHorimetro(payload.horimetro);
-    nextPayload.model = validateModel(payload.model);
-    nextPayload.date_in = validateIsoDatetime(payload.date_in, 'date_in');
+    if (stage === 'collection') {
+      nextPayload.chassi = validateChassi(payload.chassi);
+      nextPayload.horimetro = validateHorimetro(payload.horimetro);
+      nextPayload.model = validateModel(payload.model);
+      nextPayload.date_in = validateIsoDatetime(payload.date_in, 'date_in');
+      nextPayload.status = validateWorkOrderStatus(payload.status);
+      nextPayload.signature_in = validateString(payload.signature_in, 'signature_in');
+      nextPayload.service = validateServiceText(payload.service);
+      return nextPayload;
+    }
+
+    nextPayload.date_out = validateIsoDatetime(payload.date_out, 'date_out');
     nextPayload.status = validateWorkOrderStatus(payload.status);
-    nextPayload.signature_in = validateString(payload.signature_in, 'signature_in');
-    nextPayload.service = validateServiceText(payload.service);
+    nextPayload.signature_out = validateString(payload.signature_out, 'signature_out');
     return nextPayload;
-  }
-
-  nextPayload.date_out = validateIsoDatetime(payload.date_out, 'date_out');
-  nextPayload.status = validateWorkOrderStatus(payload.status);
-  nextPayload.signature_out = validateString(payload.signature_out, 'signature_out');
-  return nextPayload;
+  });
 }
 
 export function validateChecklistItemPayload(
   item: ChecklistItemPayload,
   index: number
 ): ChecklistItemPayload {
-  const label = `items[${index}]`;
+  return rethrowAsValidationException('user_input', () => {
+    const label = `items[${index}]`;
 
-  return {
-    checklist_id: item.checklist_id
-      ? validateUuid(item.checklist_id, `${label}.checklist_id`)
-      : undefined,
-    checklist_item_fk: validateUuid(item.checklist_item_fk, `${label}.checklist_item_fk`),
-    status: item.status == null ? null : validateChecklistStatus(item.status, `${label}.status`),
-    photoInUri: item.photoInUri == null ? null : validateString(item.photoInUri, `${label}.photoInUri`),
-    photoOutUri: item.photoOutUri == null ? null : validateString(item.photoOutUri, `${label}.photoOutUri`),
-  };
+    return {
+      checklist_id: item.checklist_id
+        ? validateUuid(item.checklist_id, `${label}.checklist_id`)
+        : undefined,
+      checklist_item_fk: validateUuid(item.checklist_item_fk, `${label}.checklist_item_fk`),
+      status: item.status == null ? null : validateChecklistStatus(item.status, `${label}.status`),
+      photoInUri: item.photoInUri == null ? null : validateString(item.photoInUri, `${label}.photoInUri`),
+      photoOutUri: item.photoOutUri == null ? null : validateString(item.photoOutUri, `${label}.photoOutUri`),
+    };
+  });
 }
 
 export function validateChecklistSavePayload(payload: ChecklistSavePayload): ChecklistSavePayload {
-  validateWorkOrderEntity(payload.workOrder);
-  assertCondition(payload.stage === 'collection' || payload.stage === 'delivery', 'stage invalido.');
-  assertCondition(Array.isArray(payload.items), 'items deve ser uma lista.');
+  return rethrowAsValidationException('user_input', () => {
+    validateWorkOrderEntity(payload.workOrder);
+    assertCondition(payload.stage === 'collection' || payload.stage === 'delivery', 'stage invalido.');
+    assertCondition(Array.isArray(payload.items), 'items deve ser uma lista.');
 
-  return {
-    ...payload,
-    workOrderUpdate: payload.workOrderUpdate
-      ? validateChecklistWorkOrderUpdatePayload(payload.workOrderUpdate, payload.stage)
-      : undefined,
-    items: payload.items.map((item, index) => validateChecklistItemPayload(item, index)),
-  };
+    return {
+      ...payload,
+      workOrderUpdate: payload.workOrderUpdate
+        ? validateChecklistWorkOrderUpdatePayload(payload.workOrderUpdate, payload.stage)
+        : undefined,
+      items: payload.items.map((item, index) => validateChecklistItemPayload(item, index)),
+    };
+  });
 }

@@ -1,3 +1,4 @@
+import ValidationException from '@/exceptions/ValidationException';
 import ErrorLogRepository from '@/repository/ErrorLogRepository';
 import { captureErrorSilently, handleHighLevelError, registerErrorLog } from '@/utils/loggingUtil';
 
@@ -113,5 +114,36 @@ describe('loggingUtil', () => {
         user: 'deiner',
       })
     ).resolves.toBeUndefined();
+  });
+
+  it('skips persistence for user input validation errors', async () => {
+    await expect(
+      registerErrorLog({
+        error: new ValidationException('campo invalido', 'user_input'),
+        user: 'deiner',
+      })
+    ).resolves.toBeUndefined();
+
+    expect(mockBuild).not.toHaveBeenCalled();
+  });
+
+  it('still persists api contract validation errors', async () => {
+    const repository = {
+      save: jest.fn().mockResolvedValue(true),
+    };
+    mockBuild.mockResolvedValue(repository);
+
+    await expect(
+      registerErrorLog({
+        error: new ValidationException('payload invalido', 'api_contract'),
+        user: 'deiner',
+      })
+    ).resolves.toBeUndefined();
+
+    expect(repository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        erro: 'payload invalido',
+      })
+    );
   });
 });

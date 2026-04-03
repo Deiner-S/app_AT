@@ -1,3 +1,4 @@
+import { rethrowAsValidationException } from '@/exceptions/ValidationException';
 import type {
   AccessContext,
   ChecklistExecutionSummary,
@@ -229,79 +230,97 @@ function validateCollection<T>(
 }
 
 export function validateDashboardResponse(payload: unknown): DashboardPayload {
-  const entry = validateObject(payload, 'dashboard');
-  const user = validateObject(entry.user, 'dashboard.user');
+  return rethrowAsValidationException('api_contract', () => {
+    const entry = validateObject(payload, 'dashboard');
+    const user = validateObject(entry.user, 'dashboard.user');
 
-  return {
-    user: {
-      username: validateString(user.username, 'dashboard.user.username').trim(),
-      fullName: validateString(user.fullName, 'dashboard.user.fullName').trim(),
-      position: validateString(user.position, 'dashboard.user.position').trim(),
-    },
-    summary: validateDashboardSummary(entry.summary),
-    modules: validateCollection(entry.modules, 'modules', (item, label) => {
-      const match = label.match(/\[(\d+)\]/);
-      return validateDashboardModule(item, Number(match?.[1] ?? 0));
-    }),
-    access: validateAccessContext(entry.access),
-  };
+    return {
+      user: {
+        username: validateString(user.username, 'dashboard.user.username').trim(),
+        fullName: validateString(user.fullName, 'dashboard.user.fullName').trim(),
+        position: validateString(user.position, 'dashboard.user.position').trim(),
+      },
+      summary: validateDashboardSummary(entry.summary),
+      modules: validateCollection(entry.modules, 'modules', (item, label) => {
+        const match = label.match(/\[(\d+)\]/);
+        return validateDashboardModule(item, Number(match?.[1] ?? 0));
+      }),
+      access: validateAccessContext(entry.access),
+    };
+  });
 }
 
 export function validateClientsResponse(payload: unknown): ClientListItem[] {
-  return validateCollection(payload, 'clients', validateClientListItem);
+  return rethrowAsValidationException('api_contract', () =>
+    validateCollection(payload, 'clients', validateClientListItem)
+  );
 }
 
 export function validateClientDetailResponse(payload: unknown): ClientDetail {
-  const entry = validateClientListItem(payload, 'clientDetail') as ClientDetail & JsonRecord;
-  const detail = validateObject(payload, 'clientDetail');
+  return rethrowAsValidationException('api_contract', () => {
+    const entry = validateClientListItem(payload, 'clientDetail') as ClientDetail & JsonRecord;
+    const detail = validateObject(payload, 'clientDetail');
 
-  return {
-    ...entry,
-    addresses: validateAddressList(detail.addresses, 'clientDetail.addresses'),
-    recentOrders: validateCollection(detail.recentOrders, 'clientDetail.recentOrders', validateRelatedOrderSummary),
-    permissions: validateClientDetailPermissions(detail.permissions, 'clientDetail.permissions'),
-  };
+    return {
+      ...entry,
+      addresses: validateAddressList(detail.addresses, 'clientDetail.addresses'),
+      recentOrders: validateCollection(detail.recentOrders, 'clientDetail.recentOrders', validateRelatedOrderSummary),
+      permissions: validateClientDetailPermissions(detail.permissions, 'clientDetail.permissions'),
+    };
+  });
 }
 
 export function validateEmployeesResponse(payload: unknown): EmployeeListItem[] {
-  return validateCollection(payload, 'employees', validateEmployeeListItem);
+  return rethrowAsValidationException('api_contract', () =>
+    validateCollection(payload, 'employees', validateEmployeeListItem)
+  );
 }
 
 export function validateEmployeeDetailResponse(payload: unknown): EmployeeDetail {
-  const entry = validateEmployeeListItem(payload, 'employeeDetail') as EmployeeDetail & JsonRecord;
-  const detail = validateObject(payload, 'employeeDetail');
+  return rethrowAsValidationException('api_contract', () => {
+    const entry = validateEmployeeListItem(payload, 'employeeDetail') as EmployeeDetail & JsonRecord;
+    const detail = validateObject(payload, 'employeeDetail');
 
-  return {
-    ...entry,
-    addresses: validateAddressList(detail.addresses, 'employeeDetail.addresses'),
-    permissions: validateDetailPermissions(detail.permissions, 'employeeDetail.permissions'),
-  };
+    return {
+      ...entry,
+      addresses: validateAddressList(detail.addresses, 'employeeDetail.addresses'),
+      permissions: validateDetailPermissions(detail.permissions, 'employeeDetail.permissions'),
+    };
+  });
 }
 
 export function validateChecklistItemsResponse(payload: unknown): ChecklistItemListItem[] {
-  return validateCollection(payload, 'checklistItems', validateChecklistItemListItem);
+  return rethrowAsValidationException('api_contract', () =>
+    validateCollection(payload, 'checklistItems', validateChecklistItemListItem)
+  );
 }
 
 export function validateChecklistItemDetailResponse(payload: unknown): ChecklistItemDetail {
-  const entry = validateChecklistItemListItem(payload, 'checklistItemDetail') as ChecklistItemDetail & JsonRecord;
-  const detail = validateObject(payload, 'checklistItemDetail');
+  return rethrowAsValidationException('api_contract', () => {
+    const entry = validateChecklistItemListItem(payload, 'checklistItemDetail') as ChecklistItemDetail & JsonRecord;
+    const detail = validateObject(payload, 'checklistItemDetail');
 
-  return {
-    ...entry,
-    permissions: validateDetailPermissions(detail.permissions, 'checklistItemDetail.permissions'),
-  };
+    return {
+      ...entry,
+      permissions: validateDetailPermissions(detail.permissions, 'checklistItemDetail.permissions'),
+    };
+  });
 }
 
 export function validateOrdersResponse(payload: unknown): OrderListItem[] {
-  return validateCollection(payload, 'orders', validateOrderListItem);
+  return rethrowAsValidationException('api_contract', () =>
+    validateCollection(payload, 'orders', validateOrderListItem)
+  );
 }
 
 export function validateOrderDetailResponse(payload: unknown): OrderDetail {
-  const entry = validateOrderListItem(payload, 'orderDetail') as OrderDetail & JsonRecord;
-  const detail = validateObject(payload, 'orderDetail');
+  return rethrowAsValidationException('api_contract', () => {
+    const entry = validateOrderListItem(payload, 'orderDetail') as OrderDetail & JsonRecord;
+    const detail = validateObject(payload, 'orderDetail');
 
-  return {
-    ...entry,
-    checklists: validateChecklistExecutions(detail.checklists),
-  };
+    return {
+      ...entry,
+      checklists: validateChecklistExecutions(detail.checklists),
+    };
+  });
 }

@@ -2,10 +2,22 @@ import AppLayerException, {
   executeAsyncWithLayerException,
   executeWithLayerException,
 } from '@/exceptions/AppLayerException';
+import ValidationException from '@/exceptions/ValidationException';
+import { captureErrorSilently } from '@/utils/loggingUtil';
+
+jest.mock('@/utils/loggingUtil', () => ({
+  captureErrorSilently: jest.fn().mockResolvedValue(undefined),
+}));
 
 class SampleLayerException extends AppLayerException {}
 
 describe('AppLayerException helpers', () => {
+  const mockCaptureErrorSilently = captureErrorSilently as jest.MockedFunction<typeof captureErrorSilently>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('wraps sync errors with the provided exception type', () => {
     expect(() =>
       executeWithLayerException(() => {
@@ -38,5 +50,29 @@ describe('AppLayerException helpers', () => {
         (error) => new SampleLayerException(`wrapped: ${String(error)}`)
       )
     ).rejects.toThrow('wrapped: Error: mapped');
+  });
+
+  it('does not log user input validation errors', () => {
+    const error = new ValidationException('campo invalido', 'user_input');
+
+    expect(() =>
+      executeWithLayerException(() => {
+        throw error;
+      }, SampleLayerException)
+    ).toThrow(SampleLayerException);
+
+    expect(mockCaptureErrorSilently).not.toHaveBeenCalled();
+  });
+
+  it('still logs api contract validation errors', () => {
+    const error = new ValidationException('response invalida', 'api_contract');
+
+    expect(() =>
+      executeWithLayerException(() => {
+        throw error;
+      }, SampleLayerException)
+    ).toThrow(SampleLayerException);
+
+    expect(mockCaptureErrorSilently).toHaveBeenCalledWith({ error });
   });
 });

@@ -1,4 +1,5 @@
 import ErrorLogServiceException from '@/exceptions/ErrorLogServiceException';
+import { isUserInputValidationException } from '@/exceptions/ValidationException';
 import ErrorLog from '@/models/ErrorLog';
 import ErrorLogRepository from '@/repository/ErrorLogRepository';
 import { Alert, Platform } from 'react-native';
@@ -79,6 +80,10 @@ async function persistErrorLog({ error, user = 'unknown' }: ErrorLogInput): Prom
 }
 
 export async function registerErrorLog(input: ErrorLogInput): Promise<void> {
+  if (isUserInputValidationException(input.error)) {
+    return;
+  }
+
   try {
     await persistErrorLog(input);
   } catch (registerError) {
@@ -115,6 +120,8 @@ export async function handleHighLevelError({
   error,
   user,
 }: HighLevelErrorInput): Promise<void> {
-  await captureErrorSilently({ error, user });
+  if (!isUserInputValidationException(error)) {
+    await captureErrorSilently({ error, user });
+  }
   Alert.alert('Erro', `Falha ao ${operation}. Tente novamente.`);
 }

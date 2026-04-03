@@ -1,3 +1,4 @@
+import { rethrowAsValidationException } from "@/exceptions/ValidationException";
 import WorkOrder from "@/models/WorkOrder";
 import WorkOrderRepository from "@/repository/WorkOrderRepository";
 import { sanitizeOnlyLettersNumbersAndSpaces, validateServiceText } from "@/utils/validation";
@@ -80,7 +81,7 @@ export default function useMaintenanceHook(workOrderParam: WorkOrder | null) {
       const repo = await WorkOrderRepository.build();
       const updated: WorkOrder = {
         ...displayOrder,
-        service: validateServiceText(service),
+        service: rethrowAsValidationException("user_input", () => validateServiceText(service)),
         status: "3",
         status_sync: 0,
       };

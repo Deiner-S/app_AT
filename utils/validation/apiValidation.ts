@@ -1,3 +1,4 @@
+import { rethrowAsValidationException } from '@/exceptions/ValidationException';
 import type CheckList from '@/models/CheckList';
 import type CheckListItem from '@/models/CheckListItem';
 import type ErrorLog from '@/models/ErrorLog';
@@ -42,81 +43,85 @@ function requireValue<T>(value: T | undefined, message: string): T {
 }
 
 export function validateWorkOrderApiEntries(payload: unknown): JsonRecord[] {
-  assertCondition(Array.isArray(payload), 'work_orders deve ser uma lista.');
+  return rethrowAsValidationException('api_contract', () => {
+    assertCondition(Array.isArray(payload), 'work_orders deve ser uma lista.');
 
-  return payload.map((rawEntry, index) => {
-    const label = `work_order[${index + 1}]`;
-    const entry = validateObject(rawEntry, label);
+    return payload.map((rawEntry, index) => {
+      const label = `work_order[${index + 1}]`;
+      const entry = validateObject(rawEntry, label);
 
-    validateAllowedKeys(entry, WORK_ORDER_ALLOWED_KEYS, label);
-    const operationCode = validateString(entry.operation_code, 'operation_code').trim();
-    assertCondition(operationCode.length > 0, 'operation_code e obrigatorio.');
-    const status = validateWorkOrderStatus(entry.status);
+      validateAllowedKeys(entry, WORK_ORDER_ALLOWED_KEYS, label);
+      const operationCode = validateString(entry.operation_code, 'operation_code').trim();
+      assertCondition(operationCode.length > 0, 'operation_code e obrigatorio.');
+      const status = validateWorkOrderStatus(entry.status);
 
-    const requiredKeys = [...WORK_ORDER_REQUIRED_KEYS];
-    if (status !== '1') {
-      requiredKeys.push('chassi', 'horimetro', 'model', 'date_in');
-    }
-    if (status === '3' || status === '4') {
-      requiredKeys.push('service');
-    }
-    if (status === '4') {
-      requiredKeys.push('date_out');
-    }
+      const requiredKeys = [...WORK_ORDER_REQUIRED_KEYS];
+      if (status !== '1') {
+        requiredKeys.push('chassi', 'horimetro', 'model', 'date_in');
+      }
+      if (status === '3' || status === '4') {
+        requiredKeys.push('service');
+      }
+      if (status === '4') {
+        requiredKeys.push('date_out');
+      }
 
-    validateRequiredKeys(entry, requiredKeys, label);
+      validateRequiredKeys(entry, requiredKeys, label);
 
-    const payloadEntry: JsonRecord = {
-      ...entry,
-      operation_code: operationCode,
-      status,
-      signature_in: entry.signature_in,
-      signature_out: entry.signature_out,
-      signature: entry.signature,
-    };
+      const payloadEntry: JsonRecord = {
+        ...entry,
+        operation_code: operationCode,
+        status,
+        signature_in: entry.signature_in,
+        signature_out: entry.signature_out,
+        signature: entry.signature,
+      };
 
-    if (status !== '1') {
-      payloadEntry.chassi = validateChassi(entry.chassi);
-      payloadEntry.horimetro = validateOnlyNumbers(String(entry.horimetro));
-      payloadEntry.model = validateModel(entry.model);
-      payloadEntry.date_in = validateIsoDatetime(entry.date_in, 'date_in');
-    }
+      if (status !== '1') {
+        payloadEntry.chassi = validateChassi(entry.chassi);
+        payloadEntry.horimetro = validateOnlyNumbers(String(entry.horimetro));
+        payloadEntry.model = validateModel(entry.model);
+        payloadEntry.date_in = validateIsoDatetime(entry.date_in, 'date_in');
+      }
 
-    if (status === '3' || status === '4') {
-      payloadEntry.service = validateServiceText(entry.service);
-    } else if (entry.service != null) {
-      payloadEntry.service = validateServiceText(entry.service);
-    }
+      if (status === '3' || status === '4') {
+        payloadEntry.service = validateServiceText(entry.service);
+      } else if (entry.service != null) {
+        payloadEntry.service = validateServiceText(entry.service);
+      }
 
-    if (status === '4') {
-      payloadEntry.date_out = validateIsoDatetime(entry.date_out, 'date_out');
-    } else if (entry.date_out != null) {
-      payloadEntry.date_out = validateIsoDatetime(entry.date_out, 'date_out');
-    }
+      if (status === '4') {
+        payloadEntry.date_out = validateIsoDatetime(entry.date_out, 'date_out');
+      } else if (entry.date_out != null) {
+        payloadEntry.date_out = validateIsoDatetime(entry.date_out, 'date_out');
+      }
 
-    return payloadEntry;
+      return payloadEntry;
+    });
   });
 }
 
 export function validateChecklistApiEntries(payload: unknown): JsonRecord[] {
-  assertCondition(Array.isArray(payload), 'checklists deve ser uma lista.');
+  return rethrowAsValidationException('api_contract', () => {
+    assertCondition(Array.isArray(payload), 'checklists deve ser uma lista.');
 
-  return payload.map((rawEntry, index) => {
-    const label = `checklist[${index + 1}]`;
-    const entry = validateObject(rawEntry, label);
+    return payload.map((rawEntry, index) => {
+      const label = `checklist[${index + 1}]`;
+      const entry = validateObject(rawEntry, label);
 
-    validateRequiredKeys(entry, CHECKLIST_REQUIRED_KEYS, label);
-    validateAllowedKeys(entry, CHECKLIST_ALLOWED_KEYS, label);
+      validateRequiredKeys(entry, CHECKLIST_REQUIRED_KEYS, label);
+      validateAllowedKeys(entry, CHECKLIST_ALLOWED_KEYS, label);
 
-    return {
-      ...entry,
-      id: entry.id == null ? undefined : validateUuid(entry.id, 'id'),
-      checklist_item_fk: validateUuid(entry.checklist_item_fk, 'checklist_item_fk'),
-      work_order_fk: validateString(entry.work_order_fk, 'work_order_fk').trim(),
-      status: validateChecklistStatus(entry.status),
-      img_in: entry.img_in,
-      img_out: entry.img_out,
-    };
+      return {
+        ...entry,
+        id: entry.id == null ? undefined : validateUuid(entry.id, 'id'),
+        checklist_item_fk: validateUuid(entry.checklist_item_fk, 'checklist_item_fk'),
+        work_order_fk: validateString(entry.work_order_fk, 'work_order_fk').trim(),
+        status: validateChecklistStatus(entry.status),
+        img_in: entry.img_in,
+        img_out: entry.img_out,
+      };
+    });
   });
 }
 
@@ -174,13 +179,17 @@ export function buildChecklistApiPayload(checkList: CheckList): JsonRecord {
 }
 
 export function validateWorkOrderApiResponse(payload: unknown): WorkOrder[] {
-  assertCondition(Array.isArray(payload), 'A resposta de ordens de servico deve ser uma lista.');
-  return payload.map((entry) => validateWorkOrderEntity(entry as WorkOrder));
+  return rethrowAsValidationException('api_contract', () => {
+    assertCondition(Array.isArray(payload), 'A resposta de ordens de servico deve ser uma lista.');
+    return payload.map((entry) => validateWorkOrderEntity(entry as WorkOrder));
+  });
 }
 
 export function validateCheckListItemApiResponse(payload: unknown): CheckListItem[] {
-  assertCondition(Array.isArray(payload), 'A resposta de itens de checklist deve ser uma lista.');
-  return payload.map((entry) => validateCheckListItemEntity(entry as CheckListItem));
+  return rethrowAsValidationException('api_contract', () => {
+    assertCondition(Array.isArray(payload), 'A resposta de itens de checklist deve ser uma lista.');
+    return payload.map((entry) => validateCheckListItemEntity(entry as CheckListItem));
+  });
 }
 
 export function buildErrorLogApiPayload(errorLog: ErrorLog): JsonRecord {
