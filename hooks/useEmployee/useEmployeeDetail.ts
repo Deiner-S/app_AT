@@ -8,6 +8,7 @@ export default function useEmployeeDetail(employeeId: string | undefined) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [removingAddressId, setRemovingAddressId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async (isRefresh = false) => {
@@ -60,6 +61,30 @@ export default function useEmployeeDetail(employeeId: string | undefined) {
     }
   }, [employeeId, reload]);
 
+  const removeAddress = useCallback(async (addressId: string) => {
+    if (!employeeId) {
+      setError('Identificador invalido.');
+      return false;
+    }
+
+    setRemovingAddressId(addressId);
+
+    try {
+      const updated = await executeControllerTask(async () => {
+        const response = await employeeService.deleteEmployeeAddress(employeeId, addressId);
+        setItem(response);
+        return true;
+      }, {
+        operation: 'remover endereco de funcionario',
+        fallbackValue: false,
+      });
+
+      return Boolean(updated);
+    } finally {
+      setRemovingAddressId(null);
+    }
+  }, [employeeId]);
+
   useEffect(() => {
     reload();
   }, [reload]);
@@ -69,9 +94,11 @@ export default function useEmployeeDetail(employeeId: string | undefined) {
     loading,
     refreshing,
     actionLoading,
+    removingAddressId,
     error,
     reload,
     setItem,
     toggleStatus,
+    removeAddress,
   };
 }

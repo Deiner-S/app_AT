@@ -9,6 +9,11 @@ import {
   View,
 } from 'react-native';
 
+export type FormSelectOption = string | {
+  label: string;
+  value: string;
+};
+
 export function FormField({
   label,
   error,
@@ -46,26 +51,34 @@ export function FormSelect({
   error,
   options,
   onValueChange,
+  emptyOptionLabel = 'Selecione uma opcao',
 }: {
   label: string;
   value: string;
   error?: string;
-  options: readonly string[];
+  options: readonly FormSelectOption[];
   onValueChange: (value: string) => void;
+  emptyOptionLabel?: string;
 }) {
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.label}>{label}</Text>
       <View style={[styles.selectWrap, error && styles.inputError]}>
         <Picker selectedValue={value} onValueChange={(nextValue) => onValueChange(String(nextValue))} dropdownIconColor="#e2e8f0" style={styles.select}>
-          {options.map((option) => (
+          {options.map((option) => {
+            const normalized = typeof option === 'string'
+              ? { label: option || emptyOptionLabel, value: option }
+              : option;
+
+            return (
             <Picker.Item
-              key={option || 'empty-option'}
-              label={option || 'Selecione um estado'}
-              value={option}
+              key={normalized.value || 'empty-option'}
+              label={normalized.label}
+              value={normalized.value}
               color="#e2e8f0"
             />
-          ))}
+            );
+          })}
         </Picker>
       </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}

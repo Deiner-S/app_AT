@@ -49,6 +49,16 @@ export type DetailPermissions = {
   canToggleStatus: boolean;
 };
 
+export type EmployeeDetailPermissions = DetailPermissions & {
+  canEditEmployee: boolean;
+  canManageAddresses: boolean;
+};
+
+export type EmployeePositionOption = {
+  value: string;
+  label: string;
+};
+
 export type ClientDetailPermissions = {
   canEditClient: boolean;
   canManageAddresses: boolean;
@@ -128,8 +138,31 @@ export type EmployeeListItem = {
 };
 
 export type EmployeeDetail = EmployeeListItem & {
+  firstName: string;
+  lastName: string;
   addresses: AddressSummary[];
-  permissions: DetailPermissions;
+  permissions: EmployeeDetailPermissions;
+  positionOptions: EmployeePositionOption[];
+};
+
+export type EmployeeUpdatePayload = {
+  first_name: string;
+  last_name: string;
+  cpf: string;
+  phone: string;
+  email: string;
+  position: string;
+  username: string;
+  password?: string;
+};
+
+export type EmployeeAddressPayload = {
+  street: string;
+  number: string;
+  complement?: string;
+  city: string;
+  state: string;
+  zip_code: string;
 };
 
 export type ChecklistItemListItem = {

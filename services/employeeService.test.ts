@@ -60,9 +60,11 @@ describe('employeeService', () => {
       id: '11111111-1111-4111-8111-111111111111',
       username: 'deiner',
       fullName: 'Deiner Silva',
+      firstName: 'Deiner',
+      lastName: 'Silva',
       email: 'deiner@example.com',
-      cpf: '123',
-      phone: '9999',
+      cpf: '123.456.789-00',
+      phone: '(11) 98765-4321',
       position: '1',
       positionLabel: 'Gerente',
       isActive: true,
@@ -75,8 +77,16 @@ describe('employeeService', () => {
         },
       ],
       permissions: {
+        canEditEmployee: true,
+        canManageAddresses: true,
         canToggleStatus: true,
       },
+      positionOptions: [
+        {
+          value: '1',
+          label: 'Gerente',
+        },
+      ],
     } as never);
 
     await expect(employeeService.fetchEmployeeDetail('11111111-1111-4111-8111-111111111111')).resolves.toEqual(
@@ -84,6 +94,154 @@ describe('employeeService', () => {
         fullName: 'Deiner Silva',
       })
     );
+  });
+
+  it('updates employee and validates payload before request', async () => {
+    mockHttpRequest.mockResolvedValue({
+      id: '11111111-1111-4111-8111-111111111111',
+      username: 'deiner',
+      fullName: 'Deiner Silva',
+      firstName: 'Deiner',
+      lastName: 'Silva',
+      email: 'deiner@example.com',
+      cpf: '123.456.789-00',
+      phone: '(11) 98765-4321',
+      position: '1',
+      positionLabel: 'Gerente',
+      isActive: true,
+      addressCount: 1,
+      insertDate: '2026-03-31T12:00:00.000Z',
+      addresses: [],
+      permissions: {
+        canEditEmployee: true,
+        canManageAddresses: true,
+        canToggleStatus: true,
+      },
+      positionOptions: [
+        {
+          value: '1',
+          label: 'Gerente',
+        },
+      ],
+    } as never);
+
+    await expect(employeeService.updateEmployee(
+      '11111111-1111-4111-8111-111111111111',
+      {
+        first_name: 'Deiner',
+        last_name: 'Silva',
+        cpf: '123.456.789-00',
+        phone: '(11) 98765-4321',
+        email: 'deiner@example.com',
+        position: '1',
+        username: 'deiner',
+        password: '',
+      },
+      [{ value: '1', label: 'Gerente' }]
+    )).resolves.toEqual(expect.objectContaining({ username: 'deiner' }));
+
+    expect(mockHttpRequest).toHaveBeenCalledWith({
+      method: 'PATCH',
+      endpoint: '/mobile/employees_api/11111111-1111-4111-8111-111111111111/detail/',
+      BASE_URL: 'https://ringless-equivalently-alijah.ngrok-free.dev/gerenciador',
+      timeoutMs: 20000,
+      headers: AUTH_HEADERS,
+      body: {
+        first_name: 'Deiner',
+        last_name: 'Silva',
+        cpf: '123.456.789-00',
+        phone: '(11) 98765-4321',
+        email: 'deiner@example.com',
+        position: '1',
+        username: 'deiner',
+        password: '',
+      },
+    });
+  });
+
+  it('creates employee address', async () => {
+    mockHttpRequest.mockResolvedValue({
+      id: '11111111-1111-4111-8111-111111111111',
+      username: 'deiner',
+      fullName: 'Deiner Silva',
+      firstName: 'Deiner',
+      lastName: 'Silva',
+      email: 'deiner@example.com',
+      cpf: '123.456.789-00',
+      phone: '(11) 98765-4321',
+      position: '1',
+      positionLabel: 'Gerente',
+      isActive: true,
+      addressCount: 2,
+      insertDate: '2026-03-31T12:00:00.000Z',
+      addresses: [],
+      permissions: {
+        canEditEmployee: true,
+        canManageAddresses: true,
+        canToggleStatus: true,
+      },
+      positionOptions: [
+        {
+          value: '1',
+          label: 'Gerente',
+        },
+      ],
+    } as never);
+
+    await expect(employeeService.createEmployeeAddress('11111111-1111-4111-8111-111111111111', {
+      street: 'Rua A',
+      number: '10',
+      complement: '',
+      city: 'Sao Paulo',
+      state: 'Sao Paulo',
+      zip_code: '12345-678',
+    })).resolves.toEqual(expect.objectContaining({ addressCount: 2 }));
+  });
+
+  it('deletes employee address and returns updated detail', async () => {
+    mockHttpRequest.mockResolvedValue({
+      id: '11111111-1111-4111-8111-111111111111',
+      username: 'deiner',
+      fullName: 'Deiner Silva',
+      firstName: 'Deiner',
+      lastName: 'Silva',
+      email: 'deiner@example.com',
+      cpf: '123.456.789-00',
+      phone: '(11) 98765-4321',
+      position: '1',
+      positionLabel: 'Gerente',
+      isActive: true,
+      addressCount: 0,
+      insertDate: '2026-03-31T12:00:00.000Z',
+      addresses: [],
+      permissions: {
+        canEditEmployee: true,
+        canManageAddresses: true,
+        canToggleStatus: true,
+      },
+      positionOptions: [
+        {
+          value: '1',
+          label: 'Gerente',
+        },
+      ],
+    } as never);
+
+    await expect(
+      employeeService.deleteEmployeeAddress(
+        '11111111-1111-4111-8111-111111111111',
+        '22222222-2222-4222-8222-222222222222'
+      )
+    ).resolves.toEqual(expect.objectContaining({ addressCount: 0 }));
+
+    expect(mockHttpRequest).toHaveBeenCalledWith({
+      method: 'DELETE',
+      endpoint: '/mobile/employees_api/11111111-1111-4111-8111-111111111111/addresses/22222222-2222-4222-8222-222222222222/',
+      BASE_URL: 'https://ringless-equivalently-alijah.ngrok-free.dev/gerenciador',
+      timeoutMs: 20000,
+      headers: AUTH_HEADERS,
+      body: undefined,
+    });
   });
 
   it('toggles employee status and returns backend ok flag', async () => {

@@ -1,15 +1,19 @@
+import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { DetailRow, DetailSection, EmptyState, RecordCard } from '@/components/management/Cards';
 import useEmployeeDetail from '@/hooks/useEmployee/useEmployeeDetail';
 import { formatDateLabel, getBooleanLabel } from '@/utils/managementUi';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function EmployeeDetailScreen() {
   const params = useLocalSearchParams<{ employeeId?: string }>();
-  const { item, loading, error, actionLoading, toggleStatus } = useEmployeeDetail(params.employeeId);
-  const canToggleStatus = item?.permissions.canToggleStatus ?? false;
+  const { item, loading, error, actionLoading, removingAddressId, toggleStatus, removeAddress } = useEmployeeDetail(params.employeeId);
+  const permissions = item?.permissions;
+  const canToggleStatus = permissions?.canToggleStatus ?? false;
+  const canEditEmployee = permissions?.canEditEmployee ?? false;
+  const canManageAddresses = permissions?.canManageAddresses ?? false;
 
   async function handleToggleStatus() {
     if (!params.employeeId || !canToggleStatus) {
@@ -19,6 +23,30 @@ export default function EmployeeDetailScreen() {
     await toggleStatus();
   }
 
+  function handleRemoveAddress(addressId: string) {
+    if (!canManageAddresses) {
+      return;
+    }
+
+    Alert.alert(
+      'Remover endereco',
+      'Deseja remover este endereco do funcionario?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: () => {
+            void removeAddress(addressId);
+          },
+        },
+      ]
+    );
+  }
+
   return (
     <AppShell title={item?.fullName ?? 'Funcionario'} subtitle="Detalhes do cadastro">
       {loading ? <ActivityIndicator color="#38bdf8" style={styles.loader} /> : null}
@@ -26,21 +54,48 @@ export default function EmployeeDetailScreen() {
 
       {item ? (
         <>
-          {canToggleStatus ? (
-            <Pressable style={[styles.actionButton, actionLoading && styles.actionButtonDisabled]} onPress={handleToggleStatus} disabled={actionLoading}>
-              <Text style={styles.actionButtonText}>
-                {actionLoading
-                  ? 'Atualizando...'
-                  : item.isActive
-                    ? 'Desativar funcionario'
-                    : 'Reativar funcionario'}
-              </Text>
-            </Pressable>
-          ) : (
-            <Text style={styles.helperText}>O sistema web nao liberou alteracao de status para este funcionario.</Text>
-          )}
+          <View style={styles.actionsRow}>
+            {canEditEmployee ? (
+              <Pressable
+                style={styles.actionButton}
+                onPress={() => router.push({ pathname: `/(stack)/${Routes.EMPLOYEE_EDIT}` as never, params: { employeeId: item.id } } as never)}
+              >
+                <Text style={styles.actionButtonText}>Editar cadastro</Text>
+              </Pressable>
+            ) : null}
+
+            {canManageAddresses ? (
+              <Pressable
+                style={styles.actionButton}
+                onPress={() => router.push({
+                  pathname: `/(stack)/${Routes.EMPLOYEE_ADDRESS_CREATE}` as never,
+                  params: { employeeId: item.id, employeeName: item.fullName },
+                } as never)}
+              >
+                <Text style={styles.actionButtonText}>Adicionar endereco</Text>
+              </Pressable>
+            ) : null}
+
+            {canToggleStatus ? (
+              <Pressable style={[styles.actionButton, actionLoading && styles.actionButtonDisabled]} onPress={handleToggleStatus} disabled={actionLoading}>
+                <Text style={styles.actionButtonText}>
+                  {actionLoading
+                    ? 'Atualizando...'
+                    : item.isActive
+                      ? 'Desativar funcionario'
+                      : 'Reativar funcionario'}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+
+          {!canEditEmployee && !canManageAddresses && !canToggleStatus ? (
+            <Text style={styles.helperText}>O sistema web nao liberou alteracoes para este funcionario.</Text>
+          ) : null}
 
           <DetailSection title="Cadastro">
+            <DetailRow label="Primeiro nome" value={item.firstName} />
+            <DetailRow label="Sobrenome" value={item.lastName} />
             <DetailRow label="Nome" value={item.fullName} />
             <DetailRow label="Usuario" value={item.username} />
             <DetailRow label="Cargo" value={item.positionLabel} />
@@ -53,7 +108,20 @@ export default function EmployeeDetailScreen() {
 
           <DetailSection title="Enderecos">
             {item.addresses.length ? item.addresses.map((address) => (
-              <RecordCard key={address.id} title={address.label} />
+              <View key={address.id} style={styles.addressCardWrap}>
+                <RecordCard title={address.label} />
+                {canManageAddresses ? (
+                  <Pressable
+                    style={[styles.removeButton, removingAddressId === address.id && styles.actionButtonDisabled]}
+                    onPress={() => handleRemoveAddress(address.id)}
+                    disabled={removingAddressId === address.id}
+                  >
+                    <Text style={styles.removeButtonText}>
+                      {removingAddressId === address.id ? 'Removendo...' : 'Remover endereco'}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
             )) : <EmptyState message="Funcionario sem enderecos cadastrados." />}
           </DetailSection>
         </>
@@ -71,12 +139,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 12,
   },
+  actionsRow: {
+    gap: 10,
+    marginBottom: 14,
+  },
   actionButton: {
     borderRadius: 18,
     paddingVertical: 14,
     alignItems: 'center',
     backgroundColor: '#0f766e',
-    marginBottom: 12,
   },
   actionButtonText: {
     color: '#f8fafc',
@@ -90,5 +161,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     marginBottom: 12,
+  },
+  addressCardWrap: {
+    marginBottom: 10,
+  },
+  removeButton: {
+    marginTop: 8,
+    borderRadius: 14,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(248, 113, 113, 0.45)',
+    backgroundColor: 'rgba(127, 29, 29, 0.18)',
+  },
+  removeButtonText: {
+    color: '#fecaca',
+    fontWeight: '700',
+    fontSize: 13,
   },
 });

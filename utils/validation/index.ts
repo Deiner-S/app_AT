@@ -3,6 +3,7 @@ export * from '@/utils/validation/authValidation';
 export * from '@/utils/validation/checklistValidation';
 export * from '@/utils/validation/clientValidation';
 export * from '@/utils/validation/constants';
+export * from '@/utils/validation/employeeValidation';
 export * from '@/utils/validation/entityValidation';
 export * from '@/utils/validation/helpers';
 export * from '@/utils/validation/managementValidation';

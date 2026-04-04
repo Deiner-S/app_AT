@@ -12,7 +12,9 @@ import type {
   DashboardSummary,
   DetailPermissions,
   EmployeeDetail,
+  EmployeeDetailPermissions,
   EmployeeListItem,
+  EmployeePositionOption,
   OrderDetail,
   OrderListItem,
   RelatedOrderSummary,
@@ -49,6 +51,16 @@ function validateDetailPermissions(payload: unknown, label: string): DetailPermi
   const entry = validateObject(payload, label);
 
   return {
+    canToggleStatus: validateBoolean(entry.canToggleStatus, `${label}.canToggleStatus`),
+  };
+}
+
+function validateEmployeeDetailPermissions(payload: unknown, label: string): EmployeeDetailPermissions {
+  const entry = validateObject(payload, label);
+
+  return {
+    canEditEmployee: validateBoolean(entry.canEditEmployee, `${label}.canEditEmployee`),
+    canManageAddresses: validateBoolean(entry.canManageAddresses, `${label}.canManageAddresses`),
     canToggleStatus: validateBoolean(entry.canToggleStatus, `${label}.canToggleStatus`),
   };
 }
@@ -250,6 +262,19 @@ export function validateDashboardResponse(payload: unknown): DashboardPayload {
   });
 }
 
+function validateEmployeePositionOptions(value: unknown): EmployeePositionOption[] {
+  assertCondition(Array.isArray(value), 'employeeDetail.positionOptions deve ser uma lista.');
+
+  return value.map((entry, index) => {
+    const option = validateObject(entry, `employeeDetail.positionOptions[${index}]`);
+
+    return {
+      value: validateString(option.value, `employeeDetail.positionOptions[${index}].value`).trim(),
+      label: validateString(option.label, `employeeDetail.positionOptions[${index}].label`).trim(),
+    };
+  });
+}
+
 export function validateClientsResponse(payload: unknown): ClientListItem[] {
   return rethrowAsValidationException('api_contract', () =>
     validateCollection(payload, 'clients', validateClientListItem)
@@ -283,8 +308,11 @@ export function validateEmployeeDetailResponse(payload: unknown): EmployeeDetail
 
     return {
       ...entry,
+      firstName: validateString(detail.firstName, 'employeeDetail.firstName').trim(),
+      lastName: validateString(detail.lastName, 'employeeDetail.lastName').trim(),
       addresses: validateAddressList(detail.addresses, 'employeeDetail.addresses'),
-      permissions: validateDetailPermissions(detail.permissions, 'employeeDetail.permissions'),
+      permissions: validateEmployeeDetailPermissions(detail.permissions, 'employeeDetail.permissions'),
+      positionOptions: validateEmployeePositionOptions(detail.positionOptions),
     };
   });
 }

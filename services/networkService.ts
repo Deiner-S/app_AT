@@ -7,7 +7,7 @@ import { refreshToken } from './authService';
 
 
 // definindo valores possíveis para 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH';
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 const MAX_REQUEST_ATTEMPTS = 3;
 
 //Empacotador da requisição

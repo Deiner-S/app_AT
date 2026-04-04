@@ -77,6 +77,8 @@ describe('managementValidation', () => {
       id: '11111111-1111-4111-8111-111111111111',
       username: 'deiner',
       fullName: 'Deiner Silva',
+      firstName: 'Deiner',
+      lastName: 'Silva',
       email: 'deiner@example.com',
       cpf: '123',
       phone: '999',
@@ -92,11 +94,20 @@ describe('managementValidation', () => {
         },
       ],
       permissions: {
+        canEditEmployee: true,
+        canManageAddresses: true,
         canToggleStatus: true,
       },
+      positionOptions: [
+        {
+          value: '1',
+          label: 'Gerente',
+        },
+      ],
     });
 
     expect(payload.addresses).toHaveLength(1);
+    expect(payload.positionOptions).toHaveLength(1);
     expect(payload.permissions.canToggleStatus).toBe(true);
   });
 

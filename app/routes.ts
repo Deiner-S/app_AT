@@ -9,6 +9,8 @@ export const Routes = {
   CLIENT_SERVICE_CREATE: 'clientServiceCreateScreen',
   EMPLOYEES: 'employeesScreen',
   EMPLOYEE_DETAIL: 'employeeDetailScreen',
+  EMPLOYEE_EDIT: 'employeeEditScreen',
+  EMPLOYEE_ADDRESS_CREATE: 'employeeAddressCreateScreen',
   CHECKLIST_ITEMS: 'checklistItemsScreen',
   CHECKLIST_ITEM_DETAIL: 'checklistItemDetailScreen',
   CHECKLIST: 'checklistScreen',

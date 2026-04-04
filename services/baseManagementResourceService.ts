@@ -9,7 +9,7 @@ export default abstract class BaseManagementResourceService<E extends AppLayerEx
   protected abstract readonly resourceEndpoint: string;
   protected abstract readonly ExceptionType: ExceptionConstructor<E>;
 
-  protected async request<T>(method: 'GET' | 'POST' | 'PATCH', endpoint: string, body?: unknown): Promise<T> {
+  protected async request<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', endpoint: string, body?: unknown): Promise<T> {
     return executeAsyncWithLayerException(async () => {
       const headers = await getManagementAuthorizationHeaders();
 

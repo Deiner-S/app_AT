@@ -2,14 +2,14 @@ import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { DetailSection } from '@/components/management/Cards';
 import { FormActions, FormField, FormSelect } from '@/components/management/FormControls';
-import useClientAddressForm from '@/hooks/useClient/useClientAddressForm';
+import useEmployeeAddressForm from '@/hooks/useEmployee/useEmployeeAddressForm';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 
-export default function ClientAddressCreateScreen() {
-  const params = useLocalSearchParams<{ clientId?: string; clientName?: string }>();
-  const { values, errors, submitting, formError, setFieldValue, submit, stateOptions } = useClientAddressForm(params.clientId);
+export default function EmployeeAddressCreateScreen() {
+  const params = useLocalSearchParams<{ employeeId?: string; employeeName?: string }>();
+  const { values, errors, submitting, formError, setFieldValue, submit, stateOptions } = useEmployeeAddressForm(params.employeeId);
 
   async function handleSubmit() {
     const detail = await submit();
@@ -19,13 +19,13 @@ export default function ClientAddressCreateScreen() {
     }
 
     router.replace({
-      pathname: `/(stack)/${Routes.CLIENT_DETAIL}` as never,
-      params: { clientId: detail.id },
+      pathname: `/(stack)/${Routes.EMPLOYEE_DETAIL}` as never,
+      params: { employeeId: detail.id },
     } as never);
   }
 
   return (
-    <AppShell title="Novo endereco" subtitle={params.clientName ? `Cliente: ${params.clientName}` : 'Associacao de endereco'}>
+    <AppShell title="Novo endereco" subtitle={params.employeeName ? `Funcionario: ${params.employeeName}` : 'Associacao de endereco'}>
       <DetailSection title="Endereco">
         {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
 
