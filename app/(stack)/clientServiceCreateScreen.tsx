@@ -2,8 +2,7 @@ import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { DetailSection } from '@/components/management/Cards';
 import { FormActions, FormField, ReadOnlyField } from '@/components/management/FormControls';
-import useClientServiceOrderForm from '@/hooks/useClientServiceOrderForm';
-import { executeControllerTask } from '@/services/controllerErrorService';
+import useClientServiceOrderForm from '@/hooks/useClient/useClientServiceOrderForm';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
@@ -16,9 +15,7 @@ export default function ClientServiceCreateScreen() {
   );
 
   async function handleSubmit() {
-    const detail = await executeControllerTask(() => submit(), {
-      operation: 'abrir ordem de servico para cliente',
-    });
+    const detail = await submit();
 
     if (!detail) {
       return;

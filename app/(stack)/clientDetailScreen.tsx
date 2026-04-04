@@ -1,8 +1,7 @@
 import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { DetailRow, DetailSection, EmptyState, RecordCard } from '@/components/management/Cards';
-import useManagementDetail from '@/hooks/useManagementDetail';
-import { fetchClientDetail } from '@/services/clientService';
+import useClientDetail from '@/hooks/useClient/useClientDetail';
 import { formatDateLabel } from '@/utils/managementUi';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
@@ -10,7 +9,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 
 export default function ClientDetailScreen() {
   const params = useLocalSearchParams<{ clientId?: string }>();
-  const { item, loading, error } = useManagementDetail(params.clientId, fetchClientDetail);
+  const { item, loading, error } = useClientDetail(params.clientId);
   const permissions = item?.permissions;
 
   return (

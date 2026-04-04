@@ -2,8 +2,7 @@ import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { DetailSection } from '@/components/management/Cards';
 import { FormActions, FormField, FormSelect } from '@/components/management/FormControls';
-import useClientAddressForm from '@/hooks/useClientAddressForm';
-import { executeControllerTask } from '@/services/controllerErrorService';
+import useClientAddressForm from '@/hooks/useClient/useClientAddressForm';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
@@ -13,9 +12,7 @@ export default function ClientAddressCreateScreen() {
   const { values, errors, submitting, formError, setFieldValue, submit, stateOptions } = useClientAddressForm(params.clientId);
 
   async function handleSubmit() {
-    const detail = await executeControllerTask(() => submit(), {
-      operation: 'adicionar endereco de cliente',
-    });
+    const detail = await submit();
 
     if (!detail) {
       return;

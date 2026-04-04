@@ -1,11 +1,9 @@
-import {
-  type ManagementListResource,
-  loadManagementList,
-} from '@/services/managementService';
+import { clientService } from '@/services/clientService';
+import type { ClientListItem } from '@/types/management';
 import { useCallback, useEffect, useState } from 'react';
 
-export default function useManagementList<T>(resource: ManagementListResource) {
-  const [items, setItems] = useState<T[]>([]);
+export default function useClientList() {
+  const [items, setItems] = useState<ClientListItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -20,8 +18,8 @@ export default function useManagementList<T>(resource: ManagementListResource) {
       }
 
       setError(null);
-      const response = await loadManagementList(resource, query);
-      setItems(response as T[]);
+      const response = await clientService.fetchClients(query);
+      setItems(response);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Falha ao carregar os dados.';
       setError(message);
@@ -29,7 +27,7 @@ export default function useManagementList<T>(resource: ManagementListResource) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [resource, searchQuery]);
+  }, [searchQuery]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {

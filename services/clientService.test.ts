@@ -1,12 +1,5 @@
 import { getTokenStorange } from '@/storange/authStorange';
-import {
-  createClient,
-  createClientAddress,
-  createClientServiceOrder,
-  fetchClientDetail,
-  fetchClients,
-  updateClient,
-} from './clientService';
+import { clientService } from './clientService';
 import { httpRequest } from './networkService';
 
 jest.mock('@/storange/authStorange', () => ({
@@ -79,7 +72,7 @@ describe('clientService', () => {
       },
     ] as never);
 
-    await expect(fetchClients('cliente 1')).resolves.toHaveLength(1);
+    await expect(clientService.fetchClients('cliente 1')).resolves.toHaveLength(1);
 
     expect(mockHttpRequest).toHaveBeenCalledWith({
       method: 'GET',
@@ -93,7 +86,7 @@ describe('clientService', () => {
   it('fetches client detail including mobile permissions', async () => {
     mockHttpRequest.mockResolvedValue(clientDetailPayload as never);
 
-    await expect(fetchClientDetail(clientDetailPayload.id)).resolves.toEqual(
+    await expect(clientService.fetchClientDetail(clientDetailPayload.id)).resolves.toEqual(
       expect.objectContaining({
         permissions: expect.objectContaining({
           canManageAddresses: true,
@@ -105,7 +98,7 @@ describe('clientService', () => {
   it('creates a client with validated payload', async () => {
     mockHttpRequest.mockResolvedValue(clientDetailPayload as never);
 
-    await expect(createClient({
+    await expect(clientService.createClient({
       cnpj: '12.345.678/0001-90',
       name: 'Cliente Teste',
       email: 'cliente@empresa.com',
@@ -130,7 +123,7 @@ describe('clientService', () => {
   it('updates a client with validated payload', async () => {
     mockHttpRequest.mockResolvedValue(clientDetailPayload as never);
 
-    await expect(updateClient(clientDetailPayload.id, {
+    await expect(clientService.updateClient(clientDetailPayload.id, {
       name: 'Cliente Atualizado',
       email: 'cliente@empresa.com',
       phone: '(11) 3333-4444',
@@ -153,7 +146,7 @@ describe('clientService', () => {
   it('creates a client address using the dedicated endpoint', async () => {
     mockHttpRequest.mockResolvedValue(clientDetailPayload as never);
 
-    await expect(createClientAddress(clientDetailPayload.id, {
+    await expect(clientService.createClientAddress(clientDetailPayload.id, {
       street: 'Rua Projetada 12',
       number: '10',
       complement: 'Galpao 2',
@@ -182,7 +175,7 @@ describe('clientService', () => {
   it('creates a client service order using the dedicated endpoint', async () => {
     mockHttpRequest.mockResolvedValue(clientDetailPayload as never);
 
-    await expect(createClientServiceOrder(clientDetailPayload.id, {
+    await expect(clientService.createClientServiceOrder(clientDetailPayload.id, {
       operation_code: '000002',
       symptoms: 'Motor com falha',
     })).resolves.toEqual(expect.objectContaining({ id: clientDetailPayload.id }));

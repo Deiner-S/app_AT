@@ -1,22 +1,17 @@
-import {
-  type ManagementDetailResource,
-  loadManagementDetail,
-  toggleManagementStatus,
-} from '@/services/managementService';
+import { executeControllerTask } from '@/services/controllerErrorService';
+import { employeeService } from '@/services/employeeService';
+import type { EmployeeDetail } from '@/types/management';
 import { useCallback, useEffect, useState } from 'react';
 
-export default function useManagementDetail<T>(
-  resource: ManagementDetailResource,
-  identifier: string | undefined
-) {
-  const [item, setItem] = useState<T | null>(null);
+export default function useEmployeeDetail(employeeId: string | undefined) {
+  const [item, setItem] = useState<EmployeeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async (isRefresh = false) => {
-    if (!identifier) {
+    if (!employeeId) {
       setError('Identificador invalido.');
       setLoading(false);
       return;
@@ -30,8 +25,8 @@ export default function useManagementDetail<T>(
       }
 
       setError(null);
-      const response = await loadManagementDetail(resource, identifier);
-      setItem(response as T);
+      const response = await employeeService.fetchEmployeeDetail(employeeId);
+      setItem(response);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Falha ao carregar os dados.';
       setError(message);
@@ -39,21 +34,31 @@ export default function useManagementDetail<T>(
       setLoading(false);
       setRefreshing(false);
     }
-  }, [identifier, resource]);
+  }, [employeeId]);
 
   const toggleStatus = useCallback(async () => {
-    if (!identifier) {
-      throw new Error('Identificador invalido.');
+    if (!employeeId) {
+      setError('Identificador invalido.');
+      return false;
     }
 
+    setActionLoading(true);
+
     try {
-      setActionLoading(true);
-      await toggleManagementStatus(resource, identifier);
-      await reload(true);
+      const updated = await executeControllerTask(async () => {
+        await employeeService.toggleEmployeeStatus(employeeId);
+        await reload(true);
+        return true;
+      }, {
+        operation: 'alterar status de funcionario',
+        fallbackValue: false,
+      });
+
+      return Boolean(updated);
     } finally {
       setActionLoading(false);
     }
-  }, [identifier, reload, resource]);
+  }, [employeeId, reload]);
 
   useEffect(() => {
     reload();

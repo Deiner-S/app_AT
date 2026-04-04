@@ -2,18 +2,16 @@ import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { Badge, EmptyState, RecordCard } from '@/components/management/Cards';
 import { useManagementAccess } from '@/contexts/managementAccessContext';
-import useManagementList from '@/hooks/useManagementList';
-import { fetchClients } from '@/services/clientService';
+import useClientList from '@/hooks/useClient/useClientList';
 import { formatDateLabel } from '@/utils/managementUi';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function ClientsScreen() {
   const { access } = useManagementAccess();
-  const loadClients = useCallback((search: string) => fetchClients(search), []);
-  const { items, searchQuery, setSearchQuery, loading, error } = useManagementList(loadClients);
+  const { items, searchQuery, setSearchQuery, loading, error } = useClientList();
 
   return (
     <AppShell

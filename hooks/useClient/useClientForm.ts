@@ -1,8 +1,5 @@
-import {
-  createClient,
-  fetchClientDetail,
-  updateClient,
-} from '@/services/clientService';
+import { executeControllerTask } from '@/services/controllerErrorService';
+import { clientService } from '@/services/clientService';
 import type { ClientCreatePayload, ClientDetail, ClientUpdatePayload } from '@/types/management';
 import {
   formatCnpjInput,
@@ -80,7 +77,7 @@ export default function useClientForm(mode: ClientFormMode, clientId?: string) {
       try {
         setLoading(true);
         setFormError(null);
-        const detail = await fetchClientDetail(clientId);
+        const detail = await clientService.fetchClientDetail(clientId);
 
         if (!active) {
           return;
@@ -143,9 +140,10 @@ export default function useClientForm(mode: ClientFormMode, clientId?: string) {
     return !Object.values(nextErrors).some(Boolean);
   }, [mode, values.cnpj, values.email, values.name, values.phone]);
 
-  const submit = useCallback(async (): Promise<ClientDetail> => {
+  const submit = useCallback(async (): Promise<ClientDetail | undefined> => {
     if (!validateForm()) {
-      throw new Error('Corrija os campos destacados antes de continuar.');
+      setFormError('Corrija os campos destacados antes de continuar.');
+      return undefined;
     }
 
     setSubmitting(true);
@@ -160,11 +158,20 @@ export default function useClientForm(mode: ClientFormMode, clientId?: string) {
           phone: values.phone,
         };
 
-        return await createClient(payload);
+        const detail = await executeControllerTask(() => clientService.createClient(payload), {
+          operation: 'cadastrar cliente',
+        });
+
+        if (!detail) {
+          setFormError('Falha ao salvar cliente.');
+        }
+
+        return detail;
       }
 
       if (!clientId) {
-        throw new Error('Identificador invalido.');
+        setFormError('Identificador invalido.');
+        return undefined;
       }
 
       const payload: ClientUpdatePayload = {
@@ -173,11 +180,15 @@ export default function useClientForm(mode: ClientFormMode, clientId?: string) {
         phone: values.phone,
       };
 
-      return await updateClient(clientId, payload);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha ao salvar cliente.';
-      setFormError(message);
-      throw error;
+      const detail = await executeControllerTask(() => clientService.updateClient(clientId, payload), {
+        operation: 'editar cliente',
+      });
+
+      if (!detail) {
+        setFormError('Falha ao salvar cliente.');
+      }
+
+      return detail;
     } finally {
       setSubmitting(false);
     }

@@ -2,8 +2,7 @@ import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { DetailSection } from '@/components/management/Cards';
 import { FormActions, FormField, ReadOnlyField } from '@/components/management/FormControls';
-import useClientForm from '@/hooks/useClientForm';
-import { executeControllerTask } from '@/services/controllerErrorService';
+import useClientForm from '@/hooks/useClient/useClientForm';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text } from 'react-native';
@@ -13,9 +12,7 @@ export default function ClientEditScreen() {
   const { values, errors, loading, submitting, formError, setFieldValue, submit } = useClientForm('edit', params.clientId);
 
   async function handleSubmit() {
-    const detail = await executeControllerTask(() => submit(), {
-      operation: 'editar cliente',
-    });
+    const detail = await submit();
 
     if (!detail) {
       return;

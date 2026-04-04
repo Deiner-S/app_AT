@@ -1,4 +1,5 @@
-import { createClientAddress } from '@/services/clientService';
+import { executeControllerTask } from '@/services/controllerErrorService';
+import { clientService } from '@/services/clientService';
 import type { ClientAddressPayload, ClientDetail } from '@/types/management';
 import {
   BRAZILIAN_STATE_OPTIONS,
@@ -14,7 +15,6 @@ import { useCallback, useState } from 'react';
 
 type AddressField = 'street' | 'number' | 'complement' | 'city' | 'state' | 'zip_code';
 type AddressErrors = Partial<Record<AddressField, string>>;
-
 type AddressValues = ClientAddressPayload;
 
 const INITIAL_VALUES: AddressValues = {
@@ -85,24 +85,30 @@ export default function useClientAddressForm(clientId?: string) {
     return !Object.values(nextErrors).some(Boolean);
   }, [values.city, values.complement, values.number, values.state, values.street, values.zip_code]);
 
-  const submit = useCallback(async (): Promise<ClientDetail> => {
+  const submit = useCallback(async (): Promise<ClientDetail | undefined> => {
     if (!clientId) {
-      throw new Error('Identificador invalido.');
+      setFormError('Identificador invalido.');
+      return undefined;
     }
 
     if (!validateForm()) {
-      throw new Error('Corrija os campos destacados antes de continuar.');
+      setFormError('Corrija os campos destacados antes de continuar.');
+      return undefined;
     }
 
     setSubmitting(true);
     setFormError(null);
 
     try {
-      return await createClientAddress(clientId, values);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha ao adicionar endereco.';
-      setFormError(message);
-      throw error;
+      const detail = await executeControllerTask(() => clientService.createClientAddress(clientId, values), {
+        operation: 'adicionar endereco de cliente',
+      });
+
+      if (!detail) {
+        setFormError('Falha ao adicionar endereco.');
+      }
+
+      return detail;
     } finally {
       setSubmitting(false);
     }

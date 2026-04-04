@@ -1,8 +1,5 @@
-import { executeAsyncWithLayerException } from '@/exceptions/AppLayerException';
 import ClientServiceException from '@/exceptions/ClientServiceException';
-import { MANAGEMENT_REQUEST_TIMEOUT_MS, APP_API_BASE_URL } from '@/services/apiConfig';
-import { httpRequest } from '@/services/networkService';
-import { getTokenStorange } from '@/storange/authStorange';
+import BaseManagementResourceService from '@/services/baseManagementResourceService';
 import type {
   ClientAddressPayload,
   ClientCreatePayload,
@@ -18,136 +15,44 @@ import {
   validateClientServiceOrderPayload,
   validateClientUpdatePayload,
   validateClientsResponse,
+  validateOkResponse,
 } from '@/utils/validation';
 
-async function getAuthorizationHeaders() {
-  const tokens = await getTokenStorange();
+class ClientService extends BaseManagementResourceService<ClientServiceException> {
+  protected readonly resourceEndpoint = '/mobile/clients_api/';
+  protected readonly ExceptionType = ClientServiceException;
 
-  if (!tokens?.access) {
-    throw new Error('AUTH_TOKEN_MISSING');
+  protected validateOkResponse(payload: unknown): { ok: boolean } {
+    return validateOkResponse(payload);
   }
 
-  return {
-    Authorization: `Bearer ${tokens.access}`,
-  };
-}
-
-function buildQuery(searchQuery?: string): string {
-  const normalizedQuery = searchQuery?.trim();
-
-  if (!normalizedQuery) {
-    return '';
+  fetchClients(searchQuery = ''): Promise<ClientListItem[]> {
+    return this.fetchList(searchQuery, validateClientsResponse);
   }
 
-  return `?search=${encodeURIComponent(normalizedQuery)}`;
-}
+  fetchClientDetail(clientId: string): Promise<ClientDetail> {
+    return this.fetchDetail(clientId, validateClientDetailResponse);
+  }
 
-export async function fetchClients(searchQuery = ''): Promise<ClientListItem[]> {
-  return executeAsyncWithLayerException(async () => {
-    const headers = await getAuthorizationHeaders();
-
-    const response = await httpRequest<ClientListItem[]>({
-      method: 'GET',
-      endpoint: `/mobile/clients_api/${buildQuery(searchQuery)}`,
-      BASE_URL: APP_API_BASE_URL,
-      timeoutMs: MANAGEMENT_REQUEST_TIMEOUT_MS,
-      headers,
-    });
-
-    return validateClientsResponse(response);
-  }, ClientServiceException);
-}
-
-export async function fetchClientDetail(clientId: string): Promise<ClientDetail> {
-  return executeAsyncWithLayerException(async () => {
-    const headers = await getAuthorizationHeaders();
-
-    const response = await httpRequest<ClientDetail>({
-      method: 'GET',
-      endpoint: `/mobile/clients_api/${clientId}/detail/`,
-      BASE_URL: APP_API_BASE_URL,
-      timeoutMs: MANAGEMENT_REQUEST_TIMEOUT_MS,
-      headers,
-    });
-
-    return validateClientDetailResponse(response);
-  }, ClientServiceException);
-}
-
-export async function createClient(payload: ClientCreatePayload): Promise<ClientDetail> {
-  return executeAsyncWithLayerException(async () => {
-    const headers = await getAuthorizationHeaders();
+  createClient(payload: ClientCreatePayload): Promise<ClientDetail> {
     const body = validateClientCreatePayload(payload);
+    return this.submit('POST', this.resourceEndpoint, body, validateClientDetailResponse);
+  }
 
-    const response = await httpRequest<ClientDetail>({
-      method: 'POST',
-      endpoint: '/mobile/clients_api/',
-      BASE_URL: APP_API_BASE_URL,
-      timeoutMs: MANAGEMENT_REQUEST_TIMEOUT_MS,
-      headers,
-      body,
-    });
-
-    return validateClientDetailResponse(response);
-  }, ClientServiceException);
-}
-
-export async function updateClient(clientId: string, payload: ClientUpdatePayload): Promise<ClientDetail> {
-  return executeAsyncWithLayerException(async () => {
-    const headers = await getAuthorizationHeaders();
+  updateClient(clientId: string, payload: ClientUpdatePayload): Promise<ClientDetail> {
     const body = validateClientUpdatePayload(payload);
+    return this.submit('PATCH', `${this.resourceEndpoint}${clientId}/detail/`, body, validateClientDetailResponse);
+  }
 
-    const response = await httpRequest<ClientDetail>({
-      method: 'PATCH',
-      endpoint: `/mobile/clients_api/${clientId}/detail/`,
-      BASE_URL: APP_API_BASE_URL,
-      timeoutMs: MANAGEMENT_REQUEST_TIMEOUT_MS,
-      headers,
-      body,
-    });
-
-    return validateClientDetailResponse(response);
-  }, ClientServiceException);
-}
-
-export async function createClientAddress(
-  clientId: string,
-  payload: ClientAddressPayload
-): Promise<ClientDetail> {
-  return executeAsyncWithLayerException(async () => {
-    const headers = await getAuthorizationHeaders();
+  createClientAddress(clientId: string, payload: ClientAddressPayload): Promise<ClientDetail> {
     const body = validateClientAddressPayload(payload);
+    return this.submit('POST', `${this.resourceEndpoint}${clientId}/addresses/`, body, validateClientDetailResponse);
+  }
 
-    const response = await httpRequest<ClientDetail>({
-      method: 'POST',
-      endpoint: `/mobile/clients_api/${clientId}/addresses/`,
-      BASE_URL: APP_API_BASE_URL,
-      timeoutMs: MANAGEMENT_REQUEST_TIMEOUT_MS,
-      headers,
-      body,
-    });
-
-    return validateClientDetailResponse(response);
-  }, ClientServiceException);
-}
-
-export async function createClientServiceOrder(
-  clientId: string,
-  payload: ClientServiceOrderPayload
-): Promise<ClientDetail> {
-  return executeAsyncWithLayerException(async () => {
-    const headers = await getAuthorizationHeaders();
+  createClientServiceOrder(clientId: string, payload: ClientServiceOrderPayload): Promise<ClientDetail> {
     const body = validateClientServiceOrderPayload(payload);
-
-    const response = await httpRequest<ClientDetail>({
-      method: 'POST',
-      endpoint: `/mobile/clients_api/${clientId}/services/`,
-      BASE_URL: APP_API_BASE_URL,
-      timeoutMs: MANAGEMENT_REQUEST_TIMEOUT_MS,
-      headers,
-      body,
-    });
-
-    return validateClientDetailResponse(response);
-  }, ClientServiceException);
+    return this.submit('POST', `${this.resourceEndpoint}${clientId}/services/`, body, validateClientDetailResponse);
+  }
 }
+
+export const clientService = new ClientService();

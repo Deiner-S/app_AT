@@ -1,8 +1,6 @@
 import AppShell from '@/components/appShell/AppShell';
 import { DetailRow, DetailSection } from '@/components/management/Cards';
-import useManagementDetail from '@/hooks/useManagementDetail';
-import { executeControllerTask } from '@/services/controllerErrorService';
-import type { ChecklistItemDetail } from '@/types/management';
+import useChecklistItemDetail from '@/hooks/useChecklistItem/useChecklistItemDetail';
 import { formatDateLabel } from '@/utils/managementUi';
 import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
@@ -10,7 +8,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
 export default function ChecklistItemDetailScreen() {
   const params = useLocalSearchParams<{ itemId?: string }>();
-  const { item, loading, error, actionLoading, toggleStatus } = useManagementDetail<ChecklistItemDetail>('checklistItem', params.itemId);
+  const { item, loading, error, actionLoading, toggleStatus } = useChecklistItemDetail(params.itemId);
   const canToggleStatus = item?.permissions.canToggleStatus ?? false;
 
   async function handleToggleStatus() {
@@ -18,9 +16,7 @@ export default function ChecklistItemDetailScreen() {
       return;
     }
 
-    await executeControllerTask(toggleStatus, {
-      operation: 'alterar status de item de checklist',
-    });
+    await toggleStatus();
   }
 
   return (

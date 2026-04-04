@@ -1,8 +1,6 @@
 import AppShell from '@/components/appShell/AppShell';
 import { DetailRow, DetailSection, EmptyState, RecordCard } from '@/components/management/Cards';
-import useManagementDetail from '@/hooks/useManagementDetail';
-import { executeControllerTask } from '@/services/controllerErrorService';
-import type { EmployeeDetail } from '@/types/management';
+import useEmployeeDetail from '@/hooks/useEmployee/useEmployeeDetail';
 import { formatDateLabel, getBooleanLabel } from '@/utils/managementUi';
 import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
@@ -10,7 +8,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
 export default function EmployeeDetailScreen() {
   const params = useLocalSearchParams<{ employeeId?: string }>();
-  const { item, loading, error, actionLoading, toggleStatus } = useManagementDetail<EmployeeDetail>('employee', params.employeeId);
+  const { item, loading, error, actionLoading, toggleStatus } = useEmployeeDetail(params.employeeId);
   const canToggleStatus = item?.permissions.canToggleStatus ?? false;
 
   async function handleToggleStatus() {
@@ -18,9 +16,7 @@ export default function EmployeeDetailScreen() {
       return;
     }
 
-    await executeControllerTask(toggleStatus, {
-      operation: 'alterar status de funcionario',
-    });
+    await toggleStatus();
   }
 
   return (

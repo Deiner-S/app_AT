@@ -2,8 +2,7 @@ import { Routes } from '@/app/routes';
 import AppShell from '@/components/appShell/AppShell';
 import { DetailSection } from '@/components/management/Cards';
 import { FormActions, FormField } from '@/components/management/FormControls';
-import useClientForm from '@/hooks/useClientForm';
-import { executeControllerTask } from '@/services/controllerErrorService';
+import useClientForm from '@/hooks/useClient/useClientForm';
 import { router } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
@@ -12,9 +11,7 @@ export default function ClientCreateScreen() {
   const { values, errors, submitting, formError, setFieldValue, submit } = useClientForm('create');
 
   async function handleSubmit() {
-    const detail = await executeControllerTask(() => submit(), {
-      operation: 'cadastrar cliente',
-    });
+    const detail = await submit();
 
     if (!detail) {
       return;

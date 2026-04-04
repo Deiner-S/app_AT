@@ -1,4 +1,5 @@
-import { createClientServiceOrder } from '@/services/clientService';
+import { executeControllerTask } from '@/services/controllerErrorService';
+import { clientService } from '@/services/clientService';
 import type { ClientDetail, ClientServiceOrderPayload } from '@/types/management';
 import {
   validateServiceOperationCodeField,
@@ -58,24 +59,30 @@ export default function useClientServiceOrderForm(clientId?: string, initialOper
     return !Object.values(nextErrors).some(Boolean);
   }, [values.operation_code, values.symptoms]);
 
-  const submit = useCallback(async (): Promise<ClientDetail> => {
+  const submit = useCallback(async (): Promise<ClientDetail | undefined> => {
     if (!clientId) {
-      throw new Error('Identificador invalido.');
+      setFormError('Identificador invalido.');
+      return undefined;
     }
 
     if (!validateForm()) {
-      throw new Error('Corrija os campos destacados antes de continuar.');
+      setFormError('Corrija os campos destacados antes de continuar.');
+      return undefined;
     }
 
     setSubmitting(true);
     setFormError(null);
 
     try {
-      return await createClientServiceOrder(clientId, values);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha ao abrir ordem de servico.';
-      setFormError(message);
-      throw error;
+      const detail = await executeControllerTask(() => clientService.createClientServiceOrder(clientId, values), {
+        operation: 'abrir ordem de servico para cliente',
+      });
+
+      if (!detail) {
+        setFormError('Falha ao abrir ordem de servico.');
+      }
+
+      return detail;
     } finally {
       setSubmitting(false);
     }
