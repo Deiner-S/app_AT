@@ -68,6 +68,7 @@ export function validateErrorLogEntity(entity: ErrorLog): ErrorLog {
     id: validateUuid(entity.id, 'id'),
     osVersion: validateString(entity.osVersion, 'osVersion').trim(),
     deviceModel: validateString(entity.deviceModel, 'deviceModel').trim(),
+    connectionStatus: validateString(entity.connectionStatus, 'connectionStatus').trim(),
     user: validateString(entity.user, 'user').trim(),
     erro: validateString(entity.erro, 'erro').trim(),
     stacktrace: entity.stacktrace == null ? null : validateString(entity.stacktrace, 'stacktrace'),
@@ -78,6 +79,10 @@ export function validateErrorLogEntity(entity: ErrorLog): ErrorLog {
   assertCondition(
     Number.isInteger(validated.status_sync) && (validated.status_sync === 0 || validated.status_sync === 1),
     'status_sync deve ser 0 ou 1.'
+  );
+  assertCondition(
+    ['online', 'offline', 'unknown'].includes(validated.connectionStatus),
+    'connectionStatus deve ser online, offline ou unknown.'
   );
 
   return validated as ErrorLog;

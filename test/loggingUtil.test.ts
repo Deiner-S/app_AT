@@ -26,6 +26,16 @@ jest.mock('react-native', () => ({
   },
 }));
 
+jest.mock('@react-native-community/netinfo', () => ({
+  __esModule: true,
+  default: {
+    fetch: jest.fn().mockResolvedValue({
+      isConnected: true,
+      isInternetReachable: true,
+    }),
+  },
+}));
+
 describe('loggingUtil', () => {
   const mockBuild = ErrorLogRepository.build as jest.Mock;
   const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -57,6 +67,7 @@ describe('loggingUtil', () => {
         id: 'log-id',
         osVersion: '35',
         deviceModel: 'Pixel 9',
+        connectionStatus: 'online',
         user: 'deiner',
         erro: 'request failed',
         stacktrace: error.stack,
@@ -99,6 +110,7 @@ describe('loggingUtil', () => {
 
     expect(repository.save).toHaveBeenCalledWith(
       expect.objectContaining({
+        connectionStatus: 'online',
         erro: 'MANAGEMENT_LIST_RESOURCE_INVALID',
         stacktrace: 'MANAGEMENT_LIST_RESOURCE_INVALID',
       })
@@ -142,6 +154,7 @@ describe('loggingUtil', () => {
 
     expect(repository.save).toHaveBeenCalledWith(
       expect.objectContaining({
+        connectionStatus: 'online',
         erro: 'payload invalido',
       })
     );

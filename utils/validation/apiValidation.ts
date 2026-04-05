@@ -199,6 +199,7 @@ export function buildErrorLogApiPayload(errorLog: ErrorLog): JsonRecord {
     id: validateUuid(validated.id, 'id'),
     osVersion: validateString(validated.osVersion, 'osVersion').trim(),
     deviceModel: validateString(validated.deviceModel, 'deviceModel').trim(),
+    connectionStatus: validateString(validated.connectionStatus, 'connectionStatus').trim(),
     user: validateString(validated.user, 'user').trim(),
     erro: validateString(validated.erro, 'erro').trim(),
     stacktrace: validated.stacktrace,

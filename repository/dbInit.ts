@@ -78,6 +78,8 @@ export async function initDB(db: any): Promise<void> {
       await db.execAsync(sql);
     }
 
+    await ensureErrorLogConnectionStatusColumn(db);
+
     await db.execAsync("COMMIT");
     transactionStarted = false;
   } catch (error) {
@@ -93,5 +95,16 @@ export async function initDB(db: any): Promise<void> {
     throw error instanceof RepositoryException
       ? error
       : new RepositoryException(getErrorMessage(error), error);
+  }
+}
+
+async function ensureErrorLogConnectionStatusColumn(db: any): Promise<void> {
+  const columns = await db.getAllAsync<{ name: string }>(`PRAGMA table_info(${ErrorLog.table})`);
+  const hasConnectionStatus = columns.some((column) => column.name === 'connectionStatus');
+
+  if (!hasConnectionStatus) {
+    await db.execAsync(
+      `ALTER TABLE ${ErrorLog.table} ADD COLUMN connectionStatus TEXT NOT NULL DEFAULT 'unknown'`
+    );
   }
 }
