@@ -1,12 +1,12 @@
 import AppShell from '@/components/appShell/AppShell';
 import { Badge, EmptyState, RecordCard } from '@/components/management/Cards';
 import { useSync } from '@/contexts/syncContext';
-import useHomeHook, { WORK_ORDER_STATUS_OPTIONS } from '@/hooks/homeHook';
+import useHomeHook, { WORK_ORDER_STATUS_OPTIONS } from '@/hooks/useHome';
 import { getStatusColor } from '@/utils/managementUi';
 import { getOperationalRoute } from '@/utils/orderNavigation';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function OrdersScreen() {
   const navigation = useNavigation<any>();
@@ -27,8 +27,36 @@ export default function OrdersScreen() {
     return workOrders.filter((item) => item.status === selectedStatus);
   }, [selectedStatus, workOrders]);
 
+  const panResponder = useMemo(
+    () =>
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_event, gestureState) =>
+        Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 12,
+      onPanResponderRelease: (_event, gestureState) => {
+        const currentIndex = Math.max(
+          WORK_ORDER_STATUS_OPTIONS.findIndex((option) => option.value === selectedStatus),
+          0
+        );
+
+        if (gestureState.dx <= -40 && currentIndex < WORK_ORDER_STATUS_OPTIONS.length - 1) {
+          setSelectedStatus(WORK_ORDER_STATUS_OPTIONS[currentIndex + 1].value);
+          return;
+        }
+
+        if (gestureState.dx >= 40 && currentIndex > 0) {
+          setSelectedStatus(WORK_ORDER_STATUS_OPTIONS[currentIndex - 1].value);
+        }
+      },
+    }),
+    [selectedStatus, setSelectedStatus]
+  );
+
   return (
-    <AppShell title="Ordens de servico" subtitle="Fluxo operacional atual do app">
+    <AppShell
+      title="Ordens de servico"
+      subtitle="Fluxo operacional atual do app"
+      contentPanHandlers={panResponder.panHandlers}
+    >
       <ScrollView
         horizontal
         style={styles.filterRow}

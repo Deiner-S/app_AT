@@ -1,8 +1,8 @@
 // sync/SyncContext.tsx
 import { getErrorMessage } from '@/exceptions/AppLayerException';
 import { useAuth } from '@/contexts/authContext';
-import { executeControllerTask } from '@/services/controllerErrorService';
-import Synchronizer from '@/services/synchronizerService';
+import { executeControllerTask } from '@/services/core/controllerErrorService';
+import Synchronizer from '@/services/sync';
 import { createContext, ReactNode, useContext, useState } from 'react';
 
 // children se refere a qualquer componente react vÃ¡lido

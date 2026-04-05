@@ -49,6 +49,10 @@ export type DetailPermissions = {
   canToggleStatus: boolean;
 };
 
+export type ChecklistItemDetailPermissions = DetailPermissions & {
+  canDeleteChecklistItem: boolean;
+};
+
 export type EmployeeDetailPermissions = DetailPermissions & {
   canEditEmployee: boolean;
   canManageAddresses: boolean;
@@ -175,7 +179,11 @@ export type ChecklistItemListItem = {
 };
 
 export type ChecklistItemDetail = ChecklistItemListItem & {
-  permissions: DetailPermissions;
+  permissions: ChecklistItemDetailPermissions;
+};
+
+export type ChecklistItemCreatePayload = {
+  name: string;
 };
 
 export type ChecklistExecutionSummary = {

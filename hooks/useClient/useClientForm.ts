@@ -1,5 +1,5 @@
-import { executeControllerTask } from '@/services/controllerErrorService';
-import { clientService } from '@/services/clientService';
+import { clientService } from '@/services/client';
+import { executeControllerTask } from '@/services/core/controllerErrorService';
 import type { ClientCreatePayload, ClientDetail, ClientUpdatePayload } from '@/types/management';
 import {
   formatCnpjInput,

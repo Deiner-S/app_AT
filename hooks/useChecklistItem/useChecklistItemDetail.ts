@@ -1,5 +1,5 @@
-import { executeControllerTask } from '@/services/controllerErrorService';
-import { checklistItemService } from '@/services/checklistItemService';
+import { executeControllerTask } from '@/services/core/controllerErrorService';
+import { checklistItemService } from '@/services/checklistItem';
 import type { ChecklistItemDetail } from '@/types/management';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -8,6 +8,7 @@ export default function useChecklistItemDetail(itemId: string | undefined) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async (isRefresh = false) => {
@@ -60,6 +61,34 @@ export default function useChecklistItemDetail(itemId: string | undefined) {
     }
   }, [itemId, reload]);
 
+  const deleteItem = useCallback(async () => {
+    if (!itemId) {
+      setError('Identificador invalido.');
+      return false;
+    }
+
+    setDeleting(true);
+
+    try {
+      const removed = await executeControllerTask(async () => {
+        const response = await checklistItemService.deleteChecklistItem(itemId);
+
+        if (response) {
+          setItem(null);
+        }
+
+        return response;
+      }, {
+        operation: 'excluir item de checklist',
+        fallbackValue: false,
+      });
+
+      return Boolean(removed);
+    } finally {
+      setDeleting(false);
+    }
+  }, [itemId]);
+
   useEffect(() => {
     reload();
   }, [reload]);
@@ -69,9 +98,11 @@ export default function useChecklistItemDetail(itemId: string | undefined) {
     loading,
     refreshing,
     actionLoading,
+    deleting,
     error,
     reload,
     setItem,
     toggleStatus,
+    deleteItem,
   };
 }

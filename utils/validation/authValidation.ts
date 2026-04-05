@@ -44,7 +44,6 @@ export function validateRefreshTokenResponse(value: unknown): { access: string }
 export function validateOkResponse(value: unknown): { ok: boolean } {
   return rethrowAsValidationException('api_contract', () => {
     const payload = validateObject(value, 'response');
-    validateAllowedKeys(payload, ['ok'], 'response');
 
     if (typeof payload.ok !== 'boolean') {
       throw new Error('response.ok deve ser booleano.');

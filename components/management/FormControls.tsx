@@ -52,6 +52,9 @@ export function FormSelect({
   options,
   onValueChange,
   emptyOptionLabel = 'Selecione uma opcao',
+  textColor = '#e2e8f0',
+  optionTextColor = '#e2e8f0',
+  backgroundColor = 'rgba(15, 23, 42, 0.82)',
 }: {
   label: string;
   value: string;
@@ -59,12 +62,20 @@ export function FormSelect({
   options: readonly FormSelectOption[];
   onValueChange: (value: string) => void;
   emptyOptionLabel?: string;
+  textColor?: string;
+  optionTextColor?: string;
+  backgroundColor?: string;
 }) {
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.label}>{label}</Text>
-      <View style={[styles.selectWrap, error && styles.inputError]}>
-        <Picker selectedValue={value} onValueChange={(nextValue) => onValueChange(String(nextValue))} dropdownIconColor="#e2e8f0" style={styles.select}>
+      <View style={[styles.selectWrap, { backgroundColor }, error && styles.inputError]}>
+        <Picker
+          selectedValue={value}
+          onValueChange={(nextValue) => onValueChange(String(nextValue))}
+          dropdownIconColor={textColor}
+          style={[styles.select, { color: textColor }]}
+        >
           {options.map((option) => {
             const normalized = typeof option === 'string'
               ? { label: option || emptyOptionLabel, value: option }
@@ -75,7 +86,7 @@ export function FormSelect({
               key={normalized.value || 'empty-option'}
               label={normalized.label}
               value={normalized.value}
-              color="#e2e8f0"
+              color={optionTextColor}
             />
             );
           })}

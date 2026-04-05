@@ -1,7 +1,7 @@
-import { executeControllerTask } from '@/services/controllerErrorService';
+import { executeControllerTask } from '@/services/core/controllerErrorService';
 import {
   subscribeRequestLoading,
-} from '@/services/requestLoadingService';
+} from '@/services/core/requestLoadingService';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 type RequestLoadingContextType = {

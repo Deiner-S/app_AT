@@ -11,6 +11,7 @@ interface ChecklistItemProps {
   photoAttached?: boolean;
   readOnlyStatus?: boolean;
   photoButtonLabel?: string;
+  error?: string;
 }
 
 export default function ChecklistBox({
@@ -21,6 +22,7 @@ export default function ChecklistBox({
   photoAttached,
   readOnlyStatus = false,
   photoButtonLabel = "Foto",
+  error,
 }: ChecklistItemProps) {
   const statusLabel =
     selected === "1" ? "Bom" :
@@ -29,7 +31,7 @@ export default function ChecklistBox({
     "Nao informado";
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, error && styles.containerError]}>
       <Text style={styles.checklistText}>{checkList}</Text>
 
       <View style={styles.row}>
@@ -67,6 +69,8 @@ export default function ChecklistBox({
           />
         ) : null}
       </View>
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
@@ -80,6 +84,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 16,
     marginBottom: 12,
+  },
+  containerError: {
+    borderColor: "rgba(248, 113, 113, 0.75)",
   },
   checklistText: {
     fontSize: 16,
@@ -136,5 +143,10 @@ const styles = StyleSheet.create({
   },
   photoAttachedIcon: {
     marginLeft: 2,
+  },
+  errorText: {
+    color: "#fca5a5",
+    fontSize: 12,
+    marginTop: 10,
   },
 });

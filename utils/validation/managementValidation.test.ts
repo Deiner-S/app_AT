@@ -1,4 +1,5 @@
 import {
+  validateChecklistItemDetailResponse,
   validateChecklistItemsResponse,
   validateClientDetailResponse,
   validateClientsResponse,
@@ -142,5 +143,23 @@ describe('managementValidation', () => {
 
   it('rejects invalid checklist items payload', () => {
     expect(() => validateChecklistItemsResponse({})).toThrow('checklistItems deve ser uma lista.');
+  });
+
+  it('validates checklist item detail payload with delete permission', () => {
+    const payload = validateChecklistItemDetailResponse({
+      id: '11111111-1111-4111-8111-111111111111',
+      name: 'Freio',
+      status: 1,
+      statusLabel: 'Ativo',
+      usageCount: 8,
+      insertDate: '2026-03-31T12:00:00',
+      permissions: {
+        canDeleteChecklistItem: true,
+        canToggleStatus: true,
+      },
+    });
+
+    expect(payload.permissions.canDeleteChecklistItem).toBe(true);
+    expect(payload.permissions.canToggleStatus).toBe(true);
   });
 });

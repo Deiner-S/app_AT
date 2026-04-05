@@ -1,5 +1,5 @@
-import { executeControllerTask } from '@/services/controllerErrorService'
-import { haveToken, requestToken } from '@/services/authService'
+import { haveToken, requestToken } from '@/services/auth'
+import { executeControllerTask } from '@/services/core/controllerErrorService'
 import { clearTokenStorange } from '@/storange/authStorange'
 import { useEffect, useState } from 'react'
 import { AuthContext } from './authContext'

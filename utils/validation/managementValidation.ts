@@ -3,6 +3,7 @@ import type {
   AccessContext,
   ChecklistExecutionSummary,
   ChecklistItemDetail,
+  ChecklistItemDetailPermissions,
   ChecklistItemListItem,
   ClientDetail,
   ClientDetailPermissions,
@@ -51,6 +52,15 @@ function validateDetailPermissions(payload: unknown, label: string): DetailPermi
   const entry = validateObject(payload, label);
 
   return {
+    canToggleStatus: validateBoolean(entry.canToggleStatus, `${label}.canToggleStatus`),
+  };
+}
+
+function validateChecklistItemDetailPermissions(payload: unknown, label: string): ChecklistItemDetailPermissions {
+  const entry = validateObject(payload, label);
+
+  return {
+    canDeleteChecklistItem: validateBoolean(entry.canDeleteChecklistItem, `${label}.canDeleteChecklistItem`),
     canToggleStatus: validateBoolean(entry.canToggleStatus, `${label}.canToggleStatus`),
   };
 }
@@ -330,7 +340,7 @@ export function validateChecklistItemDetailResponse(payload: unknown): Checklist
 
     return {
       ...entry,
-      permissions: validateDetailPermissions(detail.permissions, 'checklistItemDetail.permissions'),
+      permissions: validateChecklistItemDetailPermissions(detail.permissions, 'checklistItemDetail.permissions'),
     };
   });
 }

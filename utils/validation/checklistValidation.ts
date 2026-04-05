@@ -3,7 +3,7 @@ import type {
   ChecklistItemPayload,
   ChecklistSavePayload,
   ChecklistWorkOrderUpdatePayload,
-} from '@/services/checklistService';
+} from '@/services/checklistFlow';
 import { assertCondition, validateString, validateIsoDatetime, validateUuid } from '@/utils/validation/helpers';
 import { validateChecklistStatus, validateWorkOrderStatus } from '@/utils/validation/statusValidation';
 import {

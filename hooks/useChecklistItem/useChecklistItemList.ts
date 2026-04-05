@@ -1,4 +1,4 @@
-import { checklistItemService } from '@/services/checklistItemService';
+import { checklistItemService } from '@/services/checklistItem';
 import type { ChecklistItemListItem } from '@/types/management';
 import { useCallback, useEffect, useState } from 'react';
 

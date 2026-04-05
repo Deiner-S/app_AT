@@ -1,5 +1,5 @@
-import { executeControllerTask } from '@/services/controllerErrorService';
-import { employeeService } from '@/services/employeeService';
+import { employeeService } from '@/services/employee';
+import { executeControllerTask } from '@/services/core/controllerErrorService';
 import type {
   EmployeeDetail,
   EmployeePositionOption,

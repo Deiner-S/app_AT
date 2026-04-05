@@ -1,4 +1,4 @@
-import { employeeService } from '@/services/employeeService';
+import { employeeService } from '@/services/employee';
 import type { EmployeeListItem } from '@/types/management';
 import { useCallback, useEffect, useState } from 'react';
 

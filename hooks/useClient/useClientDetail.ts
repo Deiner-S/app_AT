@@ -1,4 +1,4 @@
-import { clientService } from '@/services/clientService';
+import { clientService } from '@/services/client';
 import type { ClientDetail } from '@/types/management';
 import { useCallback, useEffect, useState } from 'react';
 

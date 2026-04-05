@@ -1,5 +1,6 @@
 export * from '@/utils/validation/apiValidation';
 export * from '@/utils/validation/authValidation';
+export * from '@/utils/validation/checklistItemValidation';
 export * from '@/utils/validation/checklistValidation';
 export * from '@/utils/validation/clientValidation';
 export * from '@/utils/validation/constants';

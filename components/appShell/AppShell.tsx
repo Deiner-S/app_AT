@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import React, { ReactNode, useMemo, useState } from 'react';
 import {
   Modal,
+  PanResponderInstance,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,6 +21,7 @@ type AppShellProps = {
   subtitle?: string;
   children: ReactNode;
   rightAction?: ReactNode;
+  contentPanHandlers?: PanResponderInstance['panHandlers'];
 };
 
 type DrawerItem = {
@@ -29,7 +31,7 @@ type DrawerItem = {
   action?: () => Promise<void> | void;
 };
 
-export default function AppShell({ title, subtitle, children, rightAction }: AppShellProps) {
+export default function AppShell({ title, subtitle, children, rightAction, contentPanHandlers }: AppShellProps) {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { runSync } = useSync();
   const { logout } = useAuth();
@@ -81,6 +83,7 @@ export default function AppShell({ title, subtitle, children, rightAction }: App
       </View>
 
       <ScrollView
+        {...contentPanHandlers}
         contentContainerStyle={[
           styles.content,
           { paddingBottom: 36 + Math.max(insets.bottom, 16) },

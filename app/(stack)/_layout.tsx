@@ -30,11 +30,14 @@ export default function StackLayout() {
       <Stack.Screen name={Routes.CLIENT_SERVICE_CREATE} options={{ headerShown: false }} />
       <Stack.Screen name={Routes.EMPLOYEES} options={{ headerShown: false }} />
       <Stack.Screen name={Routes.EMPLOYEE_DETAIL} options={{ headerShown: false }} />
+      <Stack.Screen name={Routes.EMPLOYEE_EDIT} options={{ headerShown: false }} />
+      <Stack.Screen name={Routes.EMPLOYEE_ADDRESS_CREATE} options={{ headerShown: false }} />
       <Stack.Screen name={Routes.CHECKLIST_ITEMS} options={{ headerShown: false }} />
+      <Stack.Screen name={Routes.CHECKLIST_ITEM_CREATE} options={{ headerShown: false }} />
       <Stack.Screen name={Routes.CHECKLIST_ITEM_DETAIL} options={{ headerShown: false }} />
-      <Stack.Screen name={Routes.CHECKLIST}options={{headerShown: false}}/>
-      <Stack.Screen name={Routes.DELIVERY_CHECKLIST} options={{ headerShown: false }} />
-      <Stack.Screen name={Routes.MAINTENANCE} options={{ headerShown: false }} />
+      <Stack.Screen name={Routes.CHECKLIST_COLLECTION} options={{ headerShown: false }} />
+      <Stack.Screen name={Routes.CHECKLIST_MAINTENANCE} options={{ headerShown: false }} />
+      <Stack.Screen name={Routes.CHECKLIST_DELIVERY} options={{ headerShown: false }} />
     </Stack>
   )
 }
