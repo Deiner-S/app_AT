@@ -4,6 +4,7 @@ import type {
   ChecklistExecutionSummary,
   DashboardModule,
   DashboardPayload,
+  DashboardSession,
   DashboardSummary,
   OrderDetail,
   OrderListItem,
@@ -143,6 +144,18 @@ function validateDashboardModule(payload: unknown, index: number): DashboardModu
   };
 }
 
+function validateDashboardSession(payload: unknown): DashboardSession {
+  const entry = validateObject(payload, 'session');
+  assertCondition(Array.isArray(entry.scope), 'session.scope deve ser uma lista.');
+
+  return {
+    validatedAt: validateIsoDatetime(entry.validatedAt, 'session.validatedAt'),
+    offlineSessionExpiresAt: validateIsoDatetime(entry.offlineSessionExpiresAt, 'session.offlineSessionExpiresAt'),
+    permissionVersion: validateString(entry.permissionVersion, 'session.permissionVersion').trim(),
+    scope: entry.scope.map((item, index) => validateString(item, `session.scope[${index}]`).trim()),
+  };
+}
+
 function validateRelatedOrderSummary(payload: unknown, label: string): RelatedOrderSummary {
   const entry = validateObject(payload, label);
 
@@ -277,6 +290,7 @@ export function validateDashboardResponse(payload: unknown): DashboardPayload {
         return validateDashboardModule(item, Number(match?.[1] ?? 0));
       }),
       access: validateAccessContext(entry.access),
+      session: validateDashboardSession(entry.session),
     };
   });
 }

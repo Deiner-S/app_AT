@@ -1,7 +1,6 @@
 import { useAuth } from '@/contexts/authContext';
 import { useSync } from '@/contexts/syncContext';
-import { exceptionHandling } from '@/exceptions/ExceptionHandler';
-import { fetchDashboard } from '@/services/management';
+import { hasWebAccess } from '@/services/core/networkService';
 import type { AccessContext, DashboardModule, DashboardPayload } from '@/services/management';
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
@@ -22,10 +21,10 @@ type ManagementAccessProviderProps = {
 };
 
 export function ManagementAccessProvider({ children }: ManagementAccessProviderProps) {
-  const { loged } = useAuth();
+  const { loged, session, revalidateSession } = useAuth();
   const { lastSyncAt } = useSync();
-  const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [dashboard, setDashboard] = useState<DashboardPayload | null>(session);
+  const [loading, setLoading] = useState(!session);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,16 +45,28 @@ export function ManagementAccessProvider({ children }: ManagementAccessProviderP
       if (isRefresh) {
         setRefreshing(true);
       } else {
-        setLoading(true);
+        setLoading(!session);
       }
 
       setError(null);
-      const response = await exceptionHandling(() => fetchDashboard(), {
-        operation: 'carregar painel de gestao',
-      });
+
+      if (session) {
+        setDashboard(session);
+      }
+
+      const online = await hasWebAccess().catch(() => false);
+      if (!online) {
+        if (!session) {
+          setError('Sem conexao para validar permissoes e nenhum perfil offline salvo.');
+        }
+        return;
+      }
+
+      const response = await revalidateSession();
 
       if (!response) {
-        setError('Falha ao carregar permissoes do painel.');
+        setDashboard(null);
+        setError('Sessao expirada. Faca login novamente.');
         return;
       }
 
@@ -64,7 +75,7 @@ export function ManagementAccessProvider({ children }: ManagementAccessProviderP
       setLoading(false);
       setRefreshing(false);
     }
-  }, [loged, resetState]);
+  }, [loged, revalidateSession, resetState, session]);
 
   useEffect(() => {
     if (!loged) {
@@ -72,15 +83,20 @@ export function ManagementAccessProvider({ children }: ManagementAccessProviderP
       return;
     }
 
-    loadDashboard();
-  }, [loged, loadDashboard, resetState]);
+    if (session) {
+      setDashboard(session);
+      setLoading(false);
+    }
+
+    void loadDashboard();
+  }, [loged, loadDashboard, resetState, session]);
 
   useEffect(() => {
     if (!loged || !lastSyncAt) {
       return;
     }
 
-    loadDashboard(true);
+    void loadDashboard(true);
   }, [lastSyncAt, loadDashboard, loged]);
 
   const value = useMemo<ManagementAccessContextValue>(() => ({

@@ -34,6 +34,13 @@ export type DashboardModule = {
   enabled: boolean;
 };
 
+export type DashboardSession = {
+  validatedAt: string;
+  offlineSessionExpiresAt: string;
+  permissionVersion: string;
+  scope: string[];
+};
+
 export type DashboardPayload = {
   user: {
     username: string;
@@ -43,6 +50,7 @@ export type DashboardPayload = {
   summary: DashboardSummary;
   modules: DashboardModule[];
   access: AccessContext;
+  session: DashboardSession;
 };
 
 export type ChecklistExecutionSummary = {

@@ -70,6 +70,12 @@ describe('managementService', () => {
         can_manage_checklist_item: true,
         can_view_service_panel: true,
       },
+      session: {
+        validatedAt: '2026-04-07T12:00:00Z',
+        offlineSessionExpiresAt: '2026-04-14T12:00:00Z',
+        permissionVersion: 'mobile-management-v1',
+        scope: ['mobile:management'],
+      },
     } as never);
 
     await expect(fetchDashboard()).resolves.toEqual(
