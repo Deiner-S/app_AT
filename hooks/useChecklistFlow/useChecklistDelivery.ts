@@ -12,6 +12,7 @@ import {
 } from '@/services/checklistFlow';
 import { exceptionHandling } from '@/exceptions/ExceptionHandler';
 import { takePhoto as takePhotoService } from '@/services/core/imageService';
+import { parseWorkOrderParam } from '@/utils/orderNavigation';
 import { useRoute } from '@react-navigation/native';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -21,7 +22,8 @@ type ChecklistDeliveryErrors = {
 
 export default function useChecklistDelivery() {
   const route = useRoute();
-  const { workOrder } = route.params as { workOrder: WorkOrder };
+  const { workOrderJson } = (route.params ?? {}) as { workOrderJson?: string | string[] };
+  const workOrder = useMemo(() => parseWorkOrderParam(workOrderJson), [workOrderJson]);
   const [loadedWorkOrder, setLoadedWorkOrder] = useState<WorkOrder | null>(workOrder ?? null);
   const [checklistItems, setChecklistItems] = useState<CheckListItem[]>([]);
   const [checklistState, setChecklistState] = useState<ChecklistStateItem[]>([]);
@@ -105,6 +107,10 @@ export default function useChecklistDelivery() {
           return;
         }
 
+        if (!displayOrder?.operation_code) {
+          return;
+        }
+
         const hydratedState = await hydrateChecklistState(
           checkListRepository,
           checklistItems,
@@ -124,7 +130,7 @@ export default function useChecklistDelivery() {
     return () => {
       cancelled = true;
     };
-  }, [checkListRepository, checklistItems, displayOrder.operation_code]);
+  }, [checkListRepository, checklistItems, displayOrder?.operation_code]);
 
   const deliveryChecklistItems = useMemo(
     () => checklistItems.filter((item) => {

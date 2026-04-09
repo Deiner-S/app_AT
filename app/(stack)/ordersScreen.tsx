@@ -2,8 +2,8 @@ import AppShell from '@/components/appShell/AppShell';
 import { Badge, EmptyState, RecordCard } from '@/components/management/Cards';
 import { useSync } from '@/contexts/syncContext';
 import useHomeHook, { WORK_ORDER_STATUS_OPTIONS } from '@/hooks/useHome';
-import { getStatusColor } from '@/utils/managementUi';
-import { getOperationalRoute } from '@/utils/orderNavigation';
+import { getOrderStatusLabel, getStatusColor } from '@/utils/managementUi';
+import { getOperationalRoute, serializeWorkOrderParam } from '@/utils/orderNavigation';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useMemo } from 'react';
 import { PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -83,8 +83,8 @@ export default function OrdersScreen() {
             title={`OS ${item.operation_code}`}
             subtitle={item.client}
             meta={item.symptoms}
-            badge={<Badge label={`Status ${item.status}`} color={getStatusColor(item.status)} />}
-            onPress={() => navigation.navigate(getOperationalRoute(item.status), { workOrder: item })}
+            badge={<Badge label={getOrderStatusLabel(item.status)} color={getStatusColor(item.status)} />}
+            onPress={() => navigation.navigate(getOperationalRoute(item.status), { workOrderJson: serializeWorkOrderParam(item) })}
           />
         ))}
 
