@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "os_checklist",
-    "slug": "os_checklist",
+    "name": "AST",
+    "slug": "ast",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "oschecklist",
+    "scheme": "ast",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -17,7 +17,8 @@
         "foregroundImage": "./assets/images/icon.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.deiner.agro.service.track"
     },
     "web": {
       "output": "static",
@@ -43,6 +44,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8aa5a667-0340-4e57-a380-68b1013af112"
+      }
     }
   }
 }
